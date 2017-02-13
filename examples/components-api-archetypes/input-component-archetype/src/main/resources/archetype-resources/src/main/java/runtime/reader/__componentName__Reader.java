@@ -1,7 +1,6 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-
 // ============================================================================
 //
 // Copyright (C) 2006-2017 Talend Inc. - www.talend.com
@@ -14,7 +13,7 @@
 // 9 rue Pages 92150 Suresnes, France
 //
 // ============================================================================
-package ${package};
+package ${package}.runtime.reader;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -22,58 +21,68 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.component.runtime.AbstractBoundedReader;
-import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.component.runtime.Result;
 
 /**
  * Simple implementation of a reader.
  */
-public class ${componentName}Reader extends AbstractBoundedReader<String> {
+public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord> {
 
-    /** Default serial version UID. */
-    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = LoggerFactory.getLogger(${componentName}Reader.class);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(${componentName}Definition.class);
-
-    private RuntimeContainer container;
-
-    private final String filename;
+    private final String filePath;
+    
+    private final Schema schema;
 
     private boolean started = false;
+    
+    private boolean hasMore = false;
 
     private BufferedReader reader = null;
 
-    private transient String current;
+    private IndexedRecord current;
 
-    public ${componentName}Reader(RuntimeContainer container, BoundedSource source, String filename) {
+    public ${componentName}Reader(${componentName}Source source) {
         super(source);
-        this.container = container;
-        this.filename = filename;
+        this.filePath = source.getFilePath();
+        this.schema = source.getDesignSchema();
     }
 
     @Override
     public boolean start() throws IOException {
+        reader = new BufferedReader(new FileReader(filePath));
+        LOGGER.debug("open: " + filePath); //$NON-NLS-1$
         started = true;
-        LOGGER.debug("open: " + filename); //$NON-NLS-1$
-        reader = new BufferedReader(new FileReader(filename));
-        current = reader.readLine();
-        return current != null;
+        return advance();
     }
 
     @Override
     public boolean advance() throws IOException {
-        current = reader.readLine();
-        return current != null;
+        if (!started) {
+            throw new IOException("Reader wasn't started");
+        }
+        String line = reader.readLine();
+        hasMore = line != null;
+        if (hasMore) {
+        	current = new GenericData.Record(schema);
+        	current.put(0, line);
+        }
+        return hasMore;
     }
 
     @Override
-    public String getCurrent() throws NoSuchElementException {
+    public IndexedRecord getCurrent() throws NoSuchElementException {
         if (!started) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Reader wasn't started");
+        }
+        if (!hasMore) {
+        	throw new NoSuchElementException("Has no more elements");
         }
         return current;
     }
@@ -81,7 +90,9 @@ public class ${componentName}Reader extends AbstractBoundedReader<String> {
     @Override
     public void close() throws IOException {
         reader.close();
-        LOGGER.debug("close: " + filename); //$NON-NLS-1$
+        LOGGER.debug("close: " + filePath); //$NON-NLS-1$
+        started = false;
+        hasMore = false;
     }
 
     @Override
