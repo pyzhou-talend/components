@@ -47,6 +47,11 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     private BufferedReader reader = null;
 
     private IndexedRecord current;
+    
+    /**
+     * Holds values for return properties
+     */
+    private Result result;
 
     public ${componentName}Reader(${componentName}Source source) {
         super(source);
@@ -57,6 +62,7 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     @Override
     public boolean start() throws IOException {
         reader = new BufferedReader(new FileReader(filePath));
+        result = new Result();
         LOGGER.debug("open: " + filePath); //$NON-NLS-1$
         started = true;
         return advance();
@@ -65,13 +71,14 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     @Override
     public boolean advance() throws IOException {
         if (!started) {
-            throw new IOException("Reader wasn't started");
+            throw new IllegalStateException("Reader wasn't started");
         }
         String line = reader.readLine();
         hasMore = line != null;
         if (hasMore) {
         	current = new GenericData.Record(schema);
         	current.put(0, line);
+            result.totalCount++;
         }
         return hasMore;
     }
@@ -89,15 +96,22 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
 
     @Override
     public void close() throws IOException {
+        if (!started) {
+            throw new IllegalStateException("Reader wasn't started");
+        }
         reader.close();
         LOGGER.debug("close: " + filePath); //$NON-NLS-1$
+        reader = null;
         started = false;
         hasMore = false;
     }
 
+    /**
+     * Returns values of Return properties. It is called after component finished his work (after {@link this#close()} method)
+     */
     @Override
     public Map<String, Object> getReturnValues() {
-        return new Result().toMap();
+        return result.toMap();
     }
 
 }

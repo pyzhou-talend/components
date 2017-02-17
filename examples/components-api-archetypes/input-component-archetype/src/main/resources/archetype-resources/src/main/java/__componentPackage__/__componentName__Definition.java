@@ -46,10 +46,22 @@ public class ${componentName}Definition extends AbstractComponentDefinition {
         return new String[] { "File/Input" }; //$NON-NLS-1$
     }
 
-    @Override
-    public Property[] getReturnProperties() {
-        return new Property[] { };
-    }
+    /**
+     * Defines a list of Return Properties (a.k.a After Properties). 
+     * These properties collect different metrics and information during component execution.
+     * Values of these properties are returned after component finished his work.
+     * Runtime Platform may use this method to retrieve a this list and show in UI
+     * Here, it is defined 2 properties: <br>
+     * 1) Error message
+     * 2) Number of records processed
+     * For Error message property no efforts are required from component developer to set its value. 
+     * Runtime Platform will set its value by itself in case of Exception in runtime.
+     * As for Number of records property see Reader implementation in runtime part
+     */
+	@Override
+	public Property[] getReturnProperties() {
+		return new Property[] { RETURN_TOTAL_RECORD_COUNT_PROP, RETURN_ERROR_MESSAGE_PROP };
+	}
     
     @Override
     public Class<? extends ComponentProperties> getPropertyClass() {
