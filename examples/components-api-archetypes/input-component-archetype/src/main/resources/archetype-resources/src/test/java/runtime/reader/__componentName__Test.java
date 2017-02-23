@@ -15,28 +15,28 @@
 // ============================================================================
 package ${package}.runtime.reader;
 
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
 
-import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.IndexedRecord;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
-import org.talend.components.api.component.runtime.BoundedSource;
-import org.talend.components.api.component.runtime.Reader;
-import org.talend.components.api.component.runtime.Source;
 import org.talend.components.api.service.ComponentService;
 import org.talend.components.api.service.common.ComponentServiceImpl;
 import org.talend.components.api.service.common.DefinitionRegistry;
 import ${package}.${componentName}FamilyDefinition;
 import ${package}.${componentPackage}.${componentName}Properties;
+import org.talend.daikon.avro.AvroUtils;
+import org.talend.daikon.avro.SchemaConstants;
 
 @SuppressWarnings("nls")
 public class ${componentName}Test {
@@ -69,24 +69,51 @@ public class ${componentName}Test {
         File tempFile = File.createTempFile("${componentName}TestFile", ".txt");
         try {
             PrintWriter writer = new PrintWriter(tempFile.getAbsolutePath(), "UTF-8");
-            writer.println("The first line");
-            writer.println("The second line");
+            writer.println("string value 1;true;100;2017-01-01;1.23");
+            writer.println("string value 2;false;200;2017-01-22;4.56");
             writer.close();
-
             props.filename.setValue(tempFile.getAbsolutePath());
+            
+            Schema.Field col0 = new Schema.Field("stringCol", AvroUtils._string(), null, (Object) null);
+            Schema.Field col1 = new Schema.Field("booleanCol", AvroUtils._boolean(), null, (Object) null);
+            Schema.Field col2 = new Schema.Field("intCol", AvroUtils._int(), null, (Object) null);
+            Schema.Field col3 = new Schema.Field("timestampCol", AvroUtils._logicalTimestamp(), null, (Object) null);
+            col3.addProp(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd");
+            Schema.Field col4 = new Schema.Field("doubleCol", AvroUtils._double(), null, (Object) null);
+            List<Field> fields = Arrays.asList(col0, col1, col2, col3, col4);
+            Schema schema  = Schema.createRecord("file", null, null, false, fields);
+            props.schema.schema.setValue(schema);
+
             ${componentName}Source source = new ${componentName}Source();
             source.initialize(null, props);
 
             ${componentName}Reader reader = source.createReader(null);
             assertThat(reader.start(), is(true));
+            
             IndexedRecord current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "The first line"));
+            assertThat(current.get(0), is((Object) "string value 1"));
+            assertThat(current.get(1), is((Object) true));
+            assertThat(current.get(2), is((Object) 100));
+            assertThat(current.get(3), is((Object) 1483228800000l));
+            assertThat(current.get(4), is((Object) 1.23));
+            
             // No auto advance when calling getCurrent more than once.
             current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "The first line"));
+            assertThat(current.get(0), is((Object) "string value 1"));
+            assertThat(current.get(1), is((Object) true));
+            assertThat(current.get(2), is((Object) 100));
+            assertThat(current.get(3), is((Object) 1483228800000l));
+            assertThat(current.get(4), is((Object) 1.23));
+
             assertThat(reader.advance(), is(true));
             current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "The second line"));
+            assertThat(current.get(0), is((Object) "string value 2"));
+            assertThat(current.get(1), is((Object) false));
+            assertThat(current.get(2), is((Object) 200));
+            assertThat(current.get(3), is((Object) 1485043200000l));
+            assertThat(current.get(4), is((Object) 4.56));
+            
+            // no more records
             assertThat(reader.advance(), is(false));
         } finally {
             tempFile.delete();

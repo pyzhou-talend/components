@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
+import ${package}.avro.DelimitedStringConverter;
 
 /**
  * Simple implementation of a reader.
@@ -49,6 +50,11 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     private IndexedRecord current;
     
     /**
+     * Converts datum field values to avro format
+     */
+    private final DelimitedStringConverter converter;
+    
+    /**
      * Holds values for return properties
      */
     private Result result;
@@ -57,6 +63,7 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
         super(source);
         this.filePath = source.getFilePath();
         this.schema = source.getDesignSchema();
+        this.converter = new DelimitedStringConverter(schema);
     }
 
     @Override
@@ -73,11 +80,10 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
         if (!started) {
             throw new IllegalStateException("Reader wasn't started");
         }
-        String line = reader.readLine();
-        hasMore = line != null;
+        hasMore = reader.ready();
         if (hasMore) {
-        	current = new GenericData.Record(schema);
-        	current.put(0, line);
+            String line = reader.readLine();
+        	current = converter.convertToAvro(line);
             result.totalCount++;
         }
         return hasMore;

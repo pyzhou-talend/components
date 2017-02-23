@@ -15,18 +15,13 @@
 // ============================================================================
 package ${package}.${componentPackage};
 
-import static org.talend.daikon.avro.SchemaConstants.TALEND_IS_LOCKED;
-
 import java.util.Collections;
 import java.util.Set;
 
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field.Order;
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.common.FixedConnectorsComponentProperties;
 import org.talend.components.common.SchemaProperties;
-import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.PropertyFactory;
@@ -53,30 +48,16 @@ import org.talend.daikon.properties.property.StringProperty;
  * </ol>
  */
 public class ${componentName}Properties extends FixedConnectorsComponentProperties {
-    
-    private static final Schema LINE_SCHEMA;
 
-    public StringProperty filename = PropertyFactory.newString("filename"); //$NON-NLS-1$
+    public final StringProperty filename = PropertyFactory.newString("filename"); //$NON-NLS-1$
     
     /**
      * Design schema of input component. Design schema defines data fields which should be retrieved from Data Store.
      * In this component example Data Store is a single file on file system 
      */
-    public SchemaProperties schema = new SchemaProperties("schema"); //$NON-NLS-1$
+    public final SchemaProperties schema = new SchemaProperties("schema"); //$NON-NLS-1$
     
-    protected transient PropertyPathConnector mainConnector = new PropertyPathConnector(Connector.MAIN_NAME, "schema"); //$NON-NLS-1$
-    
-    /**
-     * In this case user can't retrieve any other data from file as lines. So, component specifies default schema here - <code>LINE_SCHEMA</code>
-     * Also this schema should not be editable. So, special property <code>TALEND_IS_LOCKED</code> is added to specify that runtime environment should
-     * not allow to edit this schema
-     */
-    static {
-        Schema stringSchema = AvroUtils._string();
-        Schema.Field lineField = new Schema.Field("line", stringSchema, null, (Object) null, Order.ASCENDING);
-        LINE_SCHEMA = Schema.createRecord("file", null, null, false, Collections.singletonList(lineField));
-        LINE_SCHEMA.addProp(TALEND_IS_LOCKED, "true");
-    }
+    protected final transient PropertyPathConnector mainConnector = new PropertyPathConnector(Connector.MAIN_NAME, "schema"); //$NON-NLS-1$
  
     public ${componentName}Properties(String name) {
         super(name);
@@ -88,7 +69,6 @@ public class ${componentName}Properties extends FixedConnectorsComponentProperti
     @Override
     public void setupProperties() {
         super.setupProperties();
-        schema.schema.setValue(LINE_SCHEMA);
     }
 
     @Override
