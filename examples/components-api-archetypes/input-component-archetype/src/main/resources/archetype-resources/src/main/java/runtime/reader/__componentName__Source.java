@@ -49,12 +49,19 @@ public class ${componentName}Source implements BoundedSource {
     private String filePath;
     
     private Schema schema;
+    
+    private String delimiter;
 
     @Override
     public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
         ${componentName}Properties componentProperties = (${componentName}Properties) properties;
         schema = componentProperties.schema.schema.getValue();
         filePath = componentProperties.filename.getValue();
+        if (componentProperties.useCustomDelimiter.getValue()) {
+        	delimiter = componentProperties.customDelimiter.getValue();
+        } else {
+        	delimiter = componentProperties.delimiter.getValue().getDelimiter();
+        }
         return ValidationResult.OK;
     }
 
@@ -113,5 +120,9 @@ public class ${componentName}Source implements BoundedSource {
     
     String getFilePath() {
         return this.filePath;
+    }
+    
+    String getDelimiter() {
+        return this.delimiter;
     }
 }

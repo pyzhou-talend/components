@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +36,6 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     private static final Logger LOGGER = LoggerFactory.getLogger(${componentName}Reader.class);
 
     private final String filePath;
-    
-    private final Schema schema;
 
     private boolean started = false;
     
@@ -62,8 +58,7 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     public ${componentName}Reader(${componentName}Source source) {
         super(source);
         this.filePath = source.getFilePath();
-        this.schema = source.getDesignSchema();
-        this.converter = new DelimitedStringConverter(schema);
+        this.converter = new DelimitedStringConverter(source.getDesignSchema(), source.getDelimiter());
     }
 
     @Override
