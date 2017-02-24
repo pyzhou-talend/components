@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
-import ${package}.avro.DelimitedStringConverter;
+import org.talend.daikon.avro.converter.AvroConverter;
 
 /**
  * Simple implementation of a reader.
@@ -48,7 +48,7 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     /**
      * Converts datum field values to avro format
      */
-    private final DelimitedStringConverter converter;
+    private AvroConverter<String, IndexedRecord> converter;
     
     /**
      * Holds values for return properties
@@ -58,7 +58,6 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     public ${componentName}Reader(${componentName}Source source) {
         super(source);
         this.filePath = source.getFilePath();
-        this.converter = new DelimitedStringConverter(source.getDesignSchema(), source.getDelimiter());
     }
 
     @Override
@@ -78,7 +77,7 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
         hasMore = reader.ready();
         if (hasMore) {
             String line = reader.readLine();
-        	current = converter.convertToAvro(line);
+            current = getConverter(line).convertToAvro(line);
             result.totalCount++;
         }
         return hasMore;
@@ -90,7 +89,7 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
             throw new NoSuchElementException("Reader wasn't started");
         }
         if (!hasMore) {
-        	throw new NoSuchElementException("Has no more elements");
+            throw new NoSuchElementException("Has no more elements");
         }
         return current;
     }
@@ -114,5 +113,24 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     public Map<String, Object> getReturnValues() {
         return result.toMap();
     }
+    
+    @Override
+    public ${componentName}Source getCurrentSource() {
+        return (${componentName}Source) super.getCurrentSource();
+    }
 
+    /**
+     * Returns implementation of {@link AvroConverter}, creates it if it doesn't
+     * exist.
+     * 
+     * @param delimitedString
+     *            delimited line, which was read from file
+     * @return converter
+     */
+    private AvroConverter<String, IndexedRecord> getConverter(String delimitedString) {
+        if (converter == null) {
+            converter = getCurrentSource().createConverter(delimitedString);
+        }
+        return converter;
+    }
 }

@@ -21,13 +21,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.avro.Schema;
-
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.properties.ComponentProperties;
+import ${package}.avro.DelimitedStringConverter;
+import ${package}.avro.DelimitedStringSchemaInferrer;
 import ${package}.${componentPackage}.${componentName}Properties;
-
 import org.talend.daikon.NamedThing;
+import org.talend.daikon.avro.converter.AvroConverter;
 import org.talend.daikon.properties.ValidationResult;
 
 /**
@@ -58,9 +60,9 @@ public class ${componentName}Source implements BoundedSource {
         schema = componentProperties.schema.schema.getValue();
         filePath = componentProperties.filename.getValue();
         if (componentProperties.useCustomDelimiter.getValue()) {
-        	delimiter = componentProperties.customDelimiter.getValue();
+            delimiter = componentProperties.customDelimiter.getValue();
         } else {
-        	delimiter = componentProperties.delimiter.getValue().getDelimiter();
+            delimiter = componentProperties.delimiter.getValue().getDelimiter();
         }
         return ValidationResult.OK;
     }
@@ -112,6 +114,22 @@ public class ${componentName}Source implements BoundedSource {
     @Override
     public ${componentName}Reader createReader(RuntimeContainer container) {
         return new ${componentName}Reader(this);
+    }
+    
+    /**
+     * Creates converter, which converts delimited string to
+     * {@link IndexedRecord} and vice versa. <code>delimitedString</code> is
+     * used to infer Runtime schema in case Design schema contains dynamic field
+     * 
+     * @param delimitedString
+     *            a line, which was read from file source
+     * @return {@link AvroConverter} from delimited string to
+     *         {@link IndexedRecord}
+     */
+    AvroConverter<String, IndexedRecord> createConverter(String delimitedString) {
+        Schema runtimeSchema = new DelimitedStringSchemaInferrer(delimiter).inferSchema(schema, delimitedString);
+        AvroConverter<String, IndexedRecord> converter = new DelimitedStringConverter(runtimeSchema, delimiter);
+        return converter;
     }
 
     Schema getDesignSchema() {
