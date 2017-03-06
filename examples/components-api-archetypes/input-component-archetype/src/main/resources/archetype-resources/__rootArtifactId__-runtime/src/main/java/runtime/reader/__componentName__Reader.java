@@ -19,11 +19,14 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.daikon.avro.converter.AvroConverter;
+import ${package}.${componentPackage}.${componentName}Properties;
 
 /**
  * Simple implementation of a reader.
@@ -46,6 +49,11 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
      * Converts datum field values to avro format
      */
     private AvroConverter<String, IndexedRecord> converter;
+    
+    /**
+     * Root schema includes Runtime schema and schema of out of band data (a.k.a flow variables)
+     */
+    private Schema rootSchema;    
     
     /**
      * Holds values for return properties
@@ -74,7 +82,12 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
         hasMore = reader.ready();
         if (hasMore) {
             String line = reader.readLine();
-            current = getConverter(line).convertToAvro(line);
+            IndexedRecord dataRecord = getConverter(line).convertToAvro(line);
+            IndexedRecord outOfBandRecord = new GenericData.Record(${componentName}Properties.outOfBandSchema);
+            outOfBandRecord.put(0, result.totalCount);
+            current = new GenericData.Record(getRootSchema(line));
+        	current.put(0, dataRecord);
+        	current.put(1, outOfBandRecord);
             result.totalCount++;
         }
         return hasMore;
@@ -129,5 +142,18 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
             converter = getCurrentSource().createConverter(delimitedString);
         }
         return converter;
+    }
+    
+    /**
+     * Returns Root schema, which is used during IndexedRecord creation
+     * 
+     * @param delimitedString delimited line, which was read from file
+     * @return avro Root schema
+     */
+    private Schema getRootSchema(String delimitedString) {
+    	if (rootSchema == null) {
+    		rootSchema = getCurrentSource().createRootSchema(delimitedString);
+    	}
+    	return rootSchema;
     }
 }

@@ -88,30 +88,39 @@ public class ${componentName}Test {
             assertThat(reader.start(), is(true));
             
             IndexedRecord current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "string value 1"));
-            assertThat(current.get(1), is((Object) true));
-            assertThat(current.get(2), is((Object) 100));
-            assertThat(current.get(3), is((Object) 1483228800000l));
-            assertThat(current.get(4), is((Object) 1.23));
-            
-            // No auto advance when calling getCurrent more than once.
-            current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "string value 1"));
-            assertThat(current.get(1), is((Object) true));
-            assertThat(current.get(2), is((Object) 100));
-            assertThat(current.get(3), is((Object) 1483228800000l));
-            assertThat(current.get(4), is((Object) 1.23));
+			IndexedRecord currentDataRecord = (IndexedRecord) current.get(0);
+			IndexedRecord currentOutOfBandRecord = (IndexedRecord) current.get(1);
+			assertThat(currentDataRecord.get(0), is((Object) "string value 1"));
+			assertThat(currentDataRecord.get(1), is((Object) true));
+			assertThat(currentDataRecord.get(2), is((Object) 100));
+			assertThat(currentDataRecord.get(3), is((Object) 1483228800000l));
+			assertThat(currentDataRecord.get(4), is((Object) 1.23));
+			assertThat(currentOutOfBandRecord.get(0), is((Object) 0));
 
-            assertThat(reader.advance(), is(true));
-            current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "string value 2"));
-            assertThat(current.get(1), is((Object) false));
-            assertThat(current.get(2), is((Object) 200));
-            assertThat(current.get(3), is((Object) 1485043200000l));
-            assertThat(current.get(4), is((Object) 4.56));
-            
-            // no more records
-            assertThat(reader.advance(), is(false));
+			// No auto advance when calling getCurrent more than once.
+			current = reader.getCurrent();
+			currentDataRecord = (IndexedRecord) current.get(0);
+			currentOutOfBandRecord = (IndexedRecord) current.get(1);
+			assertThat(currentDataRecord.get(0), is((Object) "string value 1"));
+			assertThat(currentDataRecord.get(1), is((Object) true));
+			assertThat(currentDataRecord.get(2), is((Object) 100));
+			assertThat(currentDataRecord.get(3), is((Object) 1483228800000l));
+			assertThat(currentDataRecord.get(4), is((Object) 1.23));
+			assertThat(currentOutOfBandRecord.get(0), is((Object) 0));
+
+			assertThat(reader.advance(), is(true));
+			current = reader.getCurrent();
+			currentDataRecord = (IndexedRecord) current.get(0);
+			currentOutOfBandRecord = (IndexedRecord) current.get(1);
+			assertThat(currentDataRecord.get(0), is((Object) "string value 2"));
+			assertThat(currentDataRecord.get(1), is((Object) false));
+			assertThat(currentDataRecord.get(2), is((Object) 200));
+			assertThat(currentDataRecord.get(3), is((Object) 1485043200000l));
+			assertThat(currentDataRecord.get(4), is((Object) 4.56));
+			assertThat(currentOutOfBandRecord.get(0), is((Object) 1));
+
+			// no more records
+			assertThat(reader.advance(), is(false));
         } finally {
             tempFile.delete();
         }

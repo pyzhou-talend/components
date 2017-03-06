@@ -22,6 +22,7 @@ import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.properties.ComponentProperties;
+import org.talend.components.common.avro.RootSchemaUtils;
 import ${package}.avro.DelimitedStringConverter;
 import ${package}.avro.DelimitedStringSchemaInferrer;
 import ${package}.${componentPackage}.${componentName}Properties;
@@ -47,14 +48,16 @@ public class ${componentName}Source implements BoundedSource {
     
     private String filePath;
     
-    private Schema schema;
+    private Schema designSchema;
+    
+    private Schema runtimeSchema;
     
     private String delimiter;
 
     @Override
     public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
         ${componentName}Properties componentProperties = (${componentName}Properties) properties;
-        schema = componentProperties.schema.schema.getValue();
+        designSchema = componentProperties.schema.schema.getValue();
         filePath = componentProperties.filename.getValue();
         if (componentProperties.useCustomDelimiter.getValue()) {
             delimiter = componentProperties.customDelimiter.getValue();
@@ -124,13 +127,26 @@ public class ${componentName}Source implements BoundedSource {
      *         {@link IndexedRecord}
      */
     AvroConverter<String, IndexedRecord> createConverter(String delimitedString) {
-        Schema runtimeSchema = new DelimitedStringSchemaInferrer(delimiter).inferSchema(schema, delimitedString);
+        Schema runtimeSchema = getRuntimeSchema(delimitedString);
         AvroConverter<String, IndexedRecord> converter = new DelimitedStringConverter(runtimeSchema, delimiter);
         return converter;
     }
+    
+	/**
+	 * Creates Root schema, which is used during IndexedRecord creation
+	 * 
+	 * @param delimitedString
+	 *            a line, which was read from file source
+	 * @return avro Root schema
+	 */
+	Schema createRootSchema(String delimitedString) {
+		Schema runtimeSchema = getRuntimeSchema(delimitedString);
+		Schema rootSchema = RootSchemaUtils.createRootSchema(runtimeSchema, ${componentName}Properties.outOfBandSchema);
+		return rootSchema;
+	}
 
     Schema getDesignSchema() {
-        return this.schema;
+        return this.designSchema;
     }
     
     String getFilePath() {
@@ -140,4 +156,19 @@ public class ${componentName}Source implements BoundedSource {
     String getDelimiter() {
         return this.delimiter;
     }
+    
+    /**
+	 * Creates Runtime schema from data line, if it is not exist yet and returns
+	 * it
+	 * 
+	 * @param delimitedString
+	 *            data line
+	 * @return avro Runtime schema
+	 */
+	private Schema getRuntimeSchema(String delimitedString) {
+		if (runtimeSchema == null) {
+			runtimeSchema = new DelimitedStringSchemaInferrer(delimiter).inferSchema(designSchema, delimitedString);
+		}
+		return runtimeSchema;
+	}    
 }
