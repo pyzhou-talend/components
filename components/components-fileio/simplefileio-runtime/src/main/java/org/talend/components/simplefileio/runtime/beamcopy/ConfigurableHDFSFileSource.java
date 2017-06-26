@@ -33,8 +33,7 @@ import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.VoidCoder;
 import org.apache.beam.sdk.io.BoundedSource;
 import org.apache.beam.sdk.io.Read;
-import org.apache.beam.sdk.io.hdfs.HDFSFileSource;
-import org.apache.beam.sdk.io.hdfs.WritableCoder;
+import org.apache.beam.sdk.io.hadoop.WritableCoder;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.values.KV;
 import org.apache.hadoop.conf.Configuration;
@@ -203,7 +202,7 @@ public class ConfigurableHDFSFileSource<K, V> extends BoundedSource<KV<K, V>> {
     }
 
     @Override
-    public List<? extends BoundedSource<KV<K, V>>> splitIntoBundles(long desiredBundleSizeBytes, PipelineOptions options)
+    public List<? extends BoundedSource<KV<K, V>>> split(long desiredBundleSizeBytes, PipelineOptions options)
             throws Exception {
         if (serializableSplit == null) {
             return Lists.transform(computeSplits(desiredBundleSizeBytes), new Function<InputSplit, BoundedSource<KV<K, V>>>() {

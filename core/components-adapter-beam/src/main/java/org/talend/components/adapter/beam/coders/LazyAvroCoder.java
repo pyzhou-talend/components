@@ -25,8 +25,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.coders.*;
-import org.apache.beam.sdk.coders.protobuf.ProtoCoder;
+import org.apache.beam.sdk.coders.AtomicCoder;
+import org.apache.beam.sdk.coders.AvroCoder;
+import org.apache.beam.sdk.coders.CannotProvideCoderException;
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.coders.CoderException;
+import org.apache.beam.sdk.coders.CoderProvider;
+import org.apache.beam.sdk.coders.CoderProviders;
+import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
 import org.apache.beam.sdk.values.TypeDescriptor;
 import org.talend.components.adapter.beam.transform.ConvertToIndexedRecord;
 import org.talend.daikon.avro.AvroRegistry;
@@ -72,7 +78,7 @@ public class LazyAvroCoder<T> extends AtomicCoder<Object> {
     }
 
     @Override
-    public void encode(Object value, OutputStream outputStream, Context context) throws CoderException, IOException {
+    public void encode(Object value, OutputStream outputStream) throws CoderException, IOException {
         if (internalAvroCoder == null) {
             Schema s = (value instanceof IndexedRecord) ? ((IndexedRecord) value).getSchema() : ConvertToIndexedRecord
                     .convertToAvro(value).getSchema();
@@ -80,73 +86,17 @@ public class LazyAvroCoder<T> extends AtomicCoder<Object> {
             internalAvroCoder = AvroCoder.of(s);
         }
         if (value instanceof IndexedRecord)
-            internalAvroCoder.encode(value, outputStream, context);
+            internalAvroCoder.encode(value, outputStream);
         else
-            internalAvroCoder.encode(ConvertToIndexedRecord.convertToAvro(value), outputStream, context);
+            internalAvroCoder.encode(ConvertToIndexedRecord.convertToAvro(value), outputStream);
     }
 
     @Override
-    public T decode(InputStream inputStream, Context context) throws CoderException, IOException {
+    public T decode(InputStream inputStream) throws CoderException, IOException {
         if (internalAvroCoder == null) {
             internalAvroCoder = AvroCoder.of(getSchema());
         }
-        return (T) internalAvroCoder.decode(inputStream, context);
-    }
-
-    public static void registerAsFallback(Pipeline p) {
-        p.getCoderRegistry().setFallbackCoderProvider(
-                CoderProviders.firstOf(p.getCoderRegistry().getFallbackCoderProvider(), LazyAvroCoder.coderProvider()));
-    }
-
-    /**
-     * The implementation of the {@link CoderProvider} for this {@link ProtoCoder} returned by {@link #coderProvider()}.
-     */
-    private static CoderProvider PROVIDER = new CoderProvider() {
-
-        final AvroRegistry registry = new AvroRegistry();
-
-        @Override
-        public <T> Coder<T> getCoder(TypeDescriptor<T> type) throws CannotProvideCoderException {
-
-            Type t = type.getType();
-            if (t instanceof Class && registry.createIndexedRecordConverter((Class<?>) t) != null) {
-                return LazyAvroCoder.of();
-            }
-            throw new CannotProvideCoderException(String.format("Cannot provide %s because %s is not registered in the %s.",
-                    LazyAvroCoder.class.getSimpleName(), type, AvroRegistry.class.getSimpleName()));
-        }
-    };
-
-    /**
-     * The implementation of the {@link CoderProvider} for this {@link ProtoCoder} returned by {@link #coderProvider()}.
-     */
-    private static CoderFactory FACTORY = new CoderFactory() {
-
-        @Override
-        public Coder<?> create(List<? extends Coder<?>> componentCoders) {
-            return LazyAvroCoder.of();
-        }
-
-        @Override
-        public List<Object> getInstanceComponents(Object value) {
-            return Collections.emptyList();
-        }
-    };
-
-    /**
-     * A {@link CoderProvider} that returns a {@link LazyAvroCoder} if it is possible to encode/decode the given class
-     * or type.
-     */
-    private static CoderProvider coderProvider() {
-        return PROVIDER;
-    }
-
-    /**
-     * A {@link CoderProvider} that returns a {@link LazyAvroCoder} if it is possible to encode/decode the given class
-     * or type.
-     */
-    public static CoderFactory coderFactory() {
-        return FACTORY;
+        return (T) internalAvroCoder.decode(inputStream);
     }
 
 }

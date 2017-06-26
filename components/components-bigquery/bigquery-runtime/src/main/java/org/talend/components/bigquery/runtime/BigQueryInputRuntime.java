@@ -24,9 +24,6 @@ import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.commons.lang3.StringUtils;
-import org.talend.components.adapter.beam.gcp.GcpServiceAccountOptions;
-import org.talend.components.adapter.beam.gcp.ServiceAccountCredentialFactory;
 import org.talend.components.api.component.runtime.RuntimableRuntime;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.bigquery.BigQueryDatasetProperties;
@@ -72,28 +69,28 @@ public class BigQueryInputRuntime extends PTransform<PBegin, PCollection<Indexed
         BigQueryDatasetProperties dataset = properties.getDatasetProperties();
         BigQueryDatastoreProperties datastore = dataset.getDatastoreProperties();
 
-        GcpServiceAccountOptions gcpOptions = in.getPipeline().getOptions().as(GcpServiceAccountOptions.class);
-        if (!"DataflowRunner".equals(gcpOptions.getRunner().getSimpleName())) {
-            // when using Dataflow runner, these properties has been set on pipeline level
-            gcpOptions.setProject(datastore.projectName.getValue());
-            gcpOptions.setTempLocation(datastore.tempGsFolder.getValue());
-            gcpOptions.setCredentialFactoryClass(ServiceAccountCredentialFactory.class);
-            gcpOptions.setServiceAccountFile(datastore.serviceAccountFile.getValue());
-            gcpOptions.setGcpCredential(BigQueryConnection.createCredentials(datastore));
-        }
+//        GcpServiceAccountOptions gcpOptions = in.getPipeline().getOptions().as(GcpServiceAccountOptions.class);
+//        if (!"DataflowRunner".equals(gcpOptions.getRunner().getSimpleName())) {
+//            // when using Dataflow runner, these properties has been set on pipeline level
+//            gcpOptions.setProject(datastore.projectName.getValue());
+//            gcpOptions.setTempLocation(datastore.tempGsFolder.getValue());
+//            gcpOptions.setCredentialFactoryClass(ServiceAccountCredentialFactory.class);
+//            gcpOptions.setServiceAccountFile(datastore.serviceAccountFile.getValue());
+//            gcpOptions.setGcpCredential(BigQueryConnection.createCredentials(datastore));
+//        }
 
-        BigQueryIO.Read.Bound bigQueryIOPTransform;
+        BigQueryIO.Read bigQueryIOPTransform;
         switch (dataset.sourceType.getValue()) {
         case TABLE_NAME: {
             TableReference table = new TableReference();
             table.setProjectId(datastore.projectName.getValue());
             table.setDatasetId(dataset.bqDataset.getValue());
             table.setTableId(dataset.tableName.getValue());
-            bigQueryIOPTransform = BigQueryIO.Read.from(table);
+            bigQueryIOPTransform = BigQueryIO.read().from(table);
             break;
         }
         case QUERY: {
-            bigQueryIOPTransform = BigQueryIO.Read.fromQuery(dataset.query.getValue());
+            bigQueryIOPTransform = BigQueryIO.read().fromQuery(dataset.query.getValue());
             if (!dataset.useLegacySql.getValue()) {
                 bigQueryIOPTransform = bigQueryIOPTransform.usingStandardSql();
             } else {

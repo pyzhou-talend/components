@@ -15,7 +15,6 @@ package org.talend.components.kafka.runtime;
 import java.nio.charset.Charset;
 
 import org.apache.avro.generic.IndexedRecord;
-import org.apache.beam.sdk.coders.ByteArrayCoder;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -25,17 +24,17 @@ import org.apache.beam.sdk.transforms.WithKeys;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PDone;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.components.adapter.beam.coders.LazyAvroCoder;
 import org.talend.components.api.component.runtime.RuntimableRuntime;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.kafka.dataset.KafkaDatasetProperties;
 import org.talend.components.kafka.output.KafkaOutputProperties;
 import org.talend.daikon.properties.ValidationResult;
 
-public class KafkaOutputPTransformRuntime extends PTransform<PCollection<IndexedRecord>, PDone> implements
-        RuntimableRuntime<KafkaOutputProperties> {
+public class KafkaOutputPTransformRuntime extends PTransform<PCollection<IndexedRecord>, PDone>
+        implements RuntimableRuntime<KafkaOutputProperties> {
 
     private static Logger LOG = LoggerFactory.getLogger(KafkaOutputPTransformRuntime.class);
 
@@ -56,22 +55,27 @@ public class KafkaOutputPTransformRuntime extends PTransform<PCollection<Indexed
             PCollection pc1 = objectPCollection.apply(WithKeys.of(new ProduceKey(properties.keyColumn.getValue())));
             if (useAvro) {
                 // TODO for now use incoming avro schema directly, do not check configured schema, improvement it.
-                return (PDone) pc1.apply(kafkaWrite.withKeyCoder(ByteArrayCoder.of()).withValueCoder(LazyAvroCoder.of()));
+                return ((PCollection<KV<byte[], byte[]>>) pc1.apply("avroToByteArray", MapElements.via(new AvroToByteArrayKV())))
+                        .apply(kafkaWrite.withKeySerializer(ByteArraySerializer.class)
+                                .withValueSerializer(ByteArraySerializer.class));
             } else { // csv
                 return ((PCollection<KV<byte[], byte[]>>) pc1.apply("formatCsvKV",
                         MapElements.via(new FormatCsvKV(properties.getDatasetProperties().fieldDelimiter.getValue()))))
-                        .apply(kafkaWrite.withKeyCoder(ByteArrayCoder.of()).withValueCoder(ByteArrayCoder.of()));
+                                .apply(kafkaWrite.withKeySerializer(ByteArraySerializer.class)
+                                        .withValueSerializer(ByteArraySerializer.class));
             }
         }
         case ROUND_ROBIN: {
             if (useAvro) {
                 // TODO for now use incoming avro schema directly, do not check configured schema, improvement it.
-                return (PDone) objectPCollection.apply(kafkaWrite.withKeyCoder(ByteArrayCoder.of())
-                        .withValueCoder(LazyAvroCoder.of()).values());
+                return (PDone) objectPCollection
+                        .apply(MapElements.via(new AvroToByteArray()))
+                        .apply(kafkaWrite.withValueSerializer(ByteArraySerializer.class).values());
             } else { // csv
-                return (PDone) objectPCollection.apply(
-                        MapElements.via(new FormatCsv(properties.getDatasetProperties().fieldDelimiter.getValue()))).apply(
-                        kafkaWrite.withKeyCoder(ByteArrayCoder.of()).withValueCoder(ByteArrayCoder.of()).values());
+                return (PDone) objectPCollection
+                        .apply(MapElements.via(new FormatCsv(properties.getDatasetProperties().fieldDelimiter.getValue())))
+                        .apply(kafkaWrite.withKeySerializer(ByteArraySerializer.class)
+                                .withValueSerializer(ByteArraySerializer.class).values());
             }
         }
         default:
@@ -83,6 +87,26 @@ public class KafkaOutputPTransformRuntime extends PTransform<PCollection<Indexed
     public ValidationResult initialize(RuntimeContainer container, KafkaOutputProperties properties) {
         this.properties = properties;
         return ValidationResult.OK;
+    }
+
+    public static class AvroToByteArrayKV extends SimpleFunction<KV<byte[], IndexedRecord>, KV<byte[], byte[]>> {
+
+        @Override
+        public KV<byte[], byte[]> apply(KV<byte[], IndexedRecord> input) {
+            //TODO(bchen) implement it
+            return KV.of(input.getKey(), new byte[0]);
+        }
+
+    }
+
+    public static class AvroToByteArray extends SimpleFunction<IndexedRecord, byte[]> {
+
+        @Override
+        public byte[] apply(IndexedRecord input) {
+            //TODO(bchen) implement it
+            return new byte[0];
+        }
+
     }
 
     public static class FormatCsvKV extends SimpleFunction<KV<byte[], IndexedRecord>, KV<byte[], byte[]>> {

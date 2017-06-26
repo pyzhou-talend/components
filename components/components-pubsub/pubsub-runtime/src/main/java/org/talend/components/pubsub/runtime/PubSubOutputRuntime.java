@@ -15,17 +15,14 @@ package org.talend.components.pubsub.runtime;
 import java.nio.charset.Charset;
 
 import org.apache.avro.generic.IndexedRecord;
-import org.apache.beam.sdk.coders.ByteArrayCoder;
-import org.apache.beam.sdk.io.PubsubIO;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.SerializableFunction;
 import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PDone;
-import org.talend.components.adapter.beam.coders.LazyAvroCoder;
-import org.talend.components.adapter.beam.gcp.GcpServiceAccountOptions;
-import org.talend.components.adapter.beam.gcp.ServiceAccountCredentialFactory;
 import org.talend.components.api.component.runtime.RuntimableRuntime;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.pubsub.PubSubDatasetProperties;
@@ -39,6 +36,7 @@ import com.google.cloud.pubsub.PubSub;
 import com.google.cloud.pubsub.PubSubException;
 import com.google.cloud.pubsub.SubscriptionInfo;
 import com.google.cloud.pubsub.TopicInfo;
+import com.google.common.collect.ImmutableMap;
 
 public class PubSubOutputRuntime extends PTransform<PCollection<IndexedRecord>, PDone>
         implements RuntimableRuntime<PubSubOutputProperties> {
@@ -59,33 +57,33 @@ public class PubSubOutputRuntime extends PTransform<PCollection<IndexedRecord>, 
         PubSubDatasetProperties dataset = properties.getDatasetProperties();
         PubSubDatastoreProperties datastore = dataset.getDatastoreProperties();
 
-        GcpServiceAccountOptions gcpOptions = in.getPipeline().getOptions().as(GcpServiceAccountOptions.class);
-        gcpOptions.setProject(datastore.projectName.getValue());
-        if (datastore.serviceAccountFile.getValue() != null) {
-            gcpOptions.setCredentialFactoryClass(ServiceAccountCredentialFactory.class);
-            gcpOptions.setServiceAccountFile(datastore.serviceAccountFile.getValue());
-            gcpOptions.setGcpCredential(PubSubConnection.createCredentials(datastore));
-        }
+//        GcpServiceAccountOptions gcpOptions = in.getPipeline().getOptions().as(GcpServiceAccountOptions.class);
+//        gcpOptions.setProject(datastore.projectName.getValue());
+//        if (datastore.serviceAccountFile.getValue() != null) {
+//            gcpOptions.setCredentialFactoryClass(ServiceAccountCredentialFactory.class);
+//            gcpOptions.setServiceAccountFile(datastore.serviceAccountFile.getValue());
+//            gcpOptions.setGcpCredential(PubSubConnection.createCredentials(datastore));
+//        }
 
         createTopicSubscriptionIfNeeded(properties);
 
-        PubsubIO.Write<byte[]> pubsubWrite = PubsubIO.<byte[]> write()
-                .topic(String.format("projects/%s/topics/%s", datastore.projectName.getValue(), dataset.topic.getValue()));
+        PubsubIO.Write<PubsubMessage> pubsubWrite = PubsubIO.writeMessages()
+                .to(String.format("projects/%s/topics/%s", datastore.projectName.getValue(), dataset.topic.getValue()));
 
         if (properties.idLabel.getValue() != null && !"".equals(properties.idLabel.getValue())) {
-            pubsubWrite.idLabel(properties.idLabel.getValue());
+            pubsubWrite.withIdAttribute(properties.idLabel.getValue());
         }
         if (properties.timestampLabel.getValue() != null && !"".equals(properties.timestampLabel.getValue())) {
-            pubsubWrite.timestampLabel(properties.timestampLabel.getValue());
+            pubsubWrite.withTimestampAttribute(properties.timestampLabel.getValue());
         }
 
         switch (dataset.valueFormat.getValue()) {
         case CSV: {
-            return (PDone) in.apply(MapElements.via(new FormatCsv(dataset.fieldDelimiter.getValue())))
-                    .apply(pubsubWrite.withCoder(ByteArrayCoder.of()));
+            return  in.apply(MapElements.via(new FormatCsv(dataset.fieldDelimiter.getValue())))
+                    .apply(pubsubWrite);
         }
         case AVRO: {
-            return (PDone) in.apply(pubsubWrite.withCoder(LazyAvroCoder.of()));
+            return in.apply(MapElements.via(new FormatAvro())).apply(pubsubWrite);
         }
         default:
             throw new RuntimeException("To be implemented: " + dataset.valueFormat.getValue());
@@ -135,7 +133,7 @@ public class PubSubOutputRuntime extends PTransform<PCollection<IndexedRecord>, 
         }
     }
 
-    public static class FormatCsvFunction implements SerializableFunction<IndexedRecord, byte[]> {
+    public static class FormatCsvFunction implements SerializableFunction<IndexedRecord, PubsubMessage> {
 
         public final String fieldDelimiter;
 
@@ -146,7 +144,7 @@ public class PubSubOutputRuntime extends PTransform<PCollection<IndexedRecord>, 
         }
 
         @Override
-        public byte[] apply(IndexedRecord input) {
+        public PubsubMessage apply(IndexedRecord input) {
             int size = input.getSchema().getFields().size();
             for (int i = 0; i < size; i++) {
                 if (sb.length() != 0)
@@ -155,11 +153,11 @@ public class PubSubOutputRuntime extends PTransform<PCollection<IndexedRecord>, 
             }
             byte[] bytes = sb.toString().getBytes(Charset.forName("UTF-8"));
             sb.setLength(0);
-            return bytes;
+            return new PubsubMessage(bytes, ImmutableMap.<String, String>of());
         }
     }
 
-    public static class FormatCsv extends SimpleFunction<IndexedRecord, byte[]> {
+    public static class FormatCsv extends SimpleFunction<IndexedRecord, PubsubMessage> {
 
         public final FormatCsvFunction function;
 
@@ -168,8 +166,16 @@ public class PubSubOutputRuntime extends PTransform<PCollection<IndexedRecord>, 
         }
 
         @Override
-        public byte[] apply(IndexedRecord input) {
+        public PubsubMessage apply(IndexedRecord input) {
             return function.apply(input);
+        }
+    }
+
+    public static class FormatAvro extends SimpleFunction<IndexedRecord, PubsubMessage> {
+
+        @Override
+        public PubsubMessage apply(IndexedRecord input) {
+            return new PubsubMessage(new byte[0], ImmutableMap.<String, String>of());
         }
     }
 }

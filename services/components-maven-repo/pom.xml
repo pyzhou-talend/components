@@ -23,7 +23,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.boot.version>1.5.1.RELEASE</spring.boot.version>
 		<hadoop.version>2.7.0</hadoop.version>
-		<beam.version>0.6.0-tlnd</beam.version>
+		<beam.version>2.0.0</beam.version>
 		<!-- JDBC drivers versions -->
 		<mariadb.driver.version>2.0.2</mariadb.driver.version>
 		<postgresql.driver.version>42.1.1</postgresql.driver.version>
@@ -90,11 +90,11 @@
 			<artifactId>elasticsearch-runtime_2_4</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.talend.components</groupId>
-			<artifactId>simplefileio-runtime</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.talend.components</groupId>-->
+			<!--<artifactId>simplefileio-runtime</artifactId>-->
+			<!--<version>${project.version}</version>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>org.talend.components</groupId>
 			<artifactId>processing-runtime</artifactId>
@@ -184,7 +184,7 @@
 								<extraArtifact>org.talend.components:localio-runtime:${project.version}:jar</extraArtifact>
 								<extraArtifact>org.talend.components:kafka-runtime:${project.version}:jar</extraArtifact>
 								<extraArtifact>org.talend.components:elasticsearch-runtime_2_4:${project.version}:jar</extraArtifact>
-								<extraArtifact>org.talend.components:simplefileio-runtime:${project.version}:jar</extraArtifact>
+								<!--<extraArtifact>org.talend.components:simplefileio-runtime:${project.version}:jar</extraArtifact>-->
 								<extraArtifact>org.talend.components:s3-runtime-di:${project.version}:jar</extraArtifact>
 								<extraArtifact>org.talend.components:components-jdbc-runtime:${project.version}:jar</extraArtifact>
 								<extraArtifact>org.talend.components:components-jdbc-runtime-beam:${project.version}:jar</extraArtifact>
@@ -257,11 +257,11 @@
 									<version>${project.version}</version>
 								</artifact>
 
-								<artifact>
-									<groupId>org.talend.components</groupId>
-									<artifactId>simplefileio-definition</artifactId>
-									<version>${project.version}</version>
-								</artifact>
+								<!--<artifact>-->
+									<!--<groupId>org.talend.components</groupId>-->
+									<!--<artifactId>simplefileio-definition</artifactId>-->
+									<!--<version>${project.version}</version>-->
+								<!--</artifact>-->
 
 								<artifact>
 									<groupId>org.talend.components</groupId>

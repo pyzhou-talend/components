@@ -49,8 +49,6 @@ public class ConvertToIndexedRecordTest {
         PipelineOptions options = PipelineOptionsFactory.create();
         options.setRunner(DirectRunner.class);
         final Pipeline p = Pipeline.create(options);
-        // TODO(rskraba): How should this be correctly registered in the pipeline?
-        p.getCoderRegistry().registerCoder(IndexedRecord.class, LazyAvroCoder.coderFactory());
 
         PCollection<String> input = p.apply(Create.of(Arrays.asList(inputValues))); //
 

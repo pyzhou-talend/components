@@ -31,7 +31,7 @@ import org.apache.avro.generic.IndexedRecord;
 import org.apache.beam.runners.spark.SparkContextOptions;
 import org.apache.beam.runners.spark.SparkRunner;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.coders.TableRowJsonCoder;
+import org.apache.beam.sdk.io.gcp.bigquery.TableRowJsonCoder;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.testing.PAssert;

@@ -25,7 +25,6 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.transforms.Sample;
 import org.talend.components.adapter.beam.BeamLocalRunnerOption;
-import org.talend.components.adapter.beam.coders.LazyAvroCoder;
 import org.talend.components.adapter.beam.transform.DirectConsumerCollector;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
@@ -71,7 +70,6 @@ public class BigQueryDatasetRuntime implements IBigQueryDatasetRuntime {
         // Create a pipeline using the input component to get records.
         DirectOptions options = BeamLocalRunnerOption.getOptions();
         final Pipeline p = Pipeline.create(options);
-        LazyAvroCoder.registerAsFallback(p);
 
         try (DirectConsumerCollector<IndexedRecord> collector = DirectConsumerCollector.of(consumer)) {
             // Collect a sample of the input records.

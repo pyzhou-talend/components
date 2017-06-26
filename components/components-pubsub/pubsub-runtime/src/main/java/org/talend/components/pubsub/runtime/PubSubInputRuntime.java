@@ -15,6 +15,7 @@ package org.talend.components.pubsub.runtime;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
@@ -22,20 +23,17 @@ import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
-import org.apache.beam.sdk.coders.ByteArrayCoder;
 import org.apache.beam.sdk.coders.Coder;
-import org.apache.beam.sdk.io.PubsubIO;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
-import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.talend.components.adapter.beam.coders.LazyAvroCoder;
-import org.talend.components.adapter.beam.gcp.GcpServiceAccountOptions;
-import org.talend.components.adapter.beam.gcp.ServiceAccountCredentialFactory;
 import org.talend.components.adapter.beam.transform.ConvertToIndexedRecord;
 import org.talend.components.api.component.runtime.RuntimableRuntime;
 import org.talend.components.api.container.RuntimeContainer;
@@ -66,36 +64,36 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
         PubSubDatasetProperties dataset = properties.getDatasetProperties();
         PubSubDatastoreProperties datastore = dataset.getDatastoreProperties();
 
-        PCollection<byte[]> pubsubMessages = null;
+        PCollection<PubsubMessage> pubsubMessages = null;
 
         if (properties.noACK.getValue()) {// getSample
             pubsubMessages = in.apply(Create.of(dataset.subscription.getValue())).apply(ParDo.of(new SampleFn(properties)));
         } else {// normal
-            GcpServiceAccountOptions gcpOptions = in.getPipeline().getOptions().as(GcpServiceAccountOptions.class);
-            gcpOptions.setProject(datastore.projectName.getValue());
-            if (datastore.serviceAccountFile.getValue() != null) {
-                gcpOptions.setCredentialFactoryClass(ServiceAccountCredentialFactory.class);
-                gcpOptions.setServiceAccountFile(datastore.serviceAccountFile.getValue());
-                gcpOptions.setGcpCredential(PubSubConnection.createCredentials(datastore));
-            }
+//            GcpServiceAccountOptions gcpOptions = in.getPipeline().getOptions().as(GcpServiceAccountOptions.class);
+//            gcpOptions.setProject(datastore.projectName.getValue());
+//            if (datastore.serviceAccountFile.getValue() != null) {
+//                gcpOptions.setCredentialFactoryClass(ServiceAccountCredentialFactory.class);
+//                gcpOptions.setServiceAccountFile(datastore.serviceAccountFile.getValue());
+//                gcpOptions.setGcpCredential(PubSubConnection.createCredentials(datastore));
+//            }
 
-            PubsubIO.Read<byte[]> pubsubRead = PubsubIO.<byte[]> read().subscription(String.format("projects/%s/subscriptions/%s",
+            PubsubIO.Read<PubsubMessage> pubsubRead = PubsubIO.readMessages().fromSubscription(String.format("projects/%s/subscriptions/%s",
                     datastore.projectName.getValue(), dataset.subscription.getValue()));
             if (properties.useMaxReadTime.getValue()) {
-                pubsubRead = pubsubRead.maxReadTime(new Duration(properties.maxReadTime.getValue()));
+//                pubsubRead = pubsubRead.maxReadTime(new Duration(properties.maxReadTime.getValue()));
             }
             if (properties.useMaxNumRecords.getValue()) {
-                pubsubRead = pubsubRead.maxNumRecords(properties.maxNumRecords.getValue());
+//                pubsubRead = pubsubRead.maxNumRecords(properties.maxNumRecords.getValue());
             }
 
             if (properties.idLabel.getValue() != null && !"".equals(properties.idLabel.getValue())) {
-                pubsubRead.idLabel(properties.idLabel.getValue());
+                pubsubRead.withIdAttribute(properties.idLabel.getValue());
             }
             if (properties.timestampLabel.getValue() != null && !"".equals(properties.timestampLabel.getValue())) {
-                pubsubRead.timestampLabel(properties.timestampLabel.getValue());
+                pubsubRead.withTimestampAttribute(properties.timestampLabel.getValue());
             }
 
-            pubsubMessages = in.apply(pubsubRead.withCoder(ByteArrayCoder.of()));
+            pubsubMessages = in.apply(pubsubRead);
         }
 
         switch (dataset.valueFormat.getValue()) {
@@ -119,7 +117,7 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
         return LazyAvroCoder.of();
     }
 
-    public static class ConvertToAvro extends DoFn<byte[], IndexedRecord> {
+    public static class ConvertToAvro extends DoFn<PubsubMessage, IndexedRecord> {
 
         private final String schemaStr;
 
@@ -139,13 +137,13 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
                 schema = new Schema.Parser().parse(schemaStr);
                 datumReader = new GenericDatumReader<GenericRecord>(schema);
             }
-            decoder = DecoderFactory.get().binaryDecoder(c.element(), decoder);
+            decoder = DecoderFactory.get().binaryDecoder(c.element().getPayload(), decoder);
             GenericRecord record = datumReader.read(null, decoder);
             c.output(record);
         }
     }
 
-    static class SampleFn extends DoFn<String, byte[]> {
+    static class SampleFn extends DoFn<String, PubsubMessage> {
 
         private PubSubInputProperties spec;
 
@@ -178,7 +176,7 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
                 Iterator<ReceivedMessage> messageIterator = client.pull(context.element(), maxNum);
                 while (messageIterator.hasNext()) {
                     ReceivedMessage next = messageIterator.next();
-                    context.output(next.getPayload().toByteArray());
+                    context.output(new PubsubMessage(next.getPayload().toByteArray(), ImmutableMap.<String, String>of()));
                     // no next.ack() for getSample, if call ack then the message will be removed
                     num++;
                     if (num >= maxNum) {

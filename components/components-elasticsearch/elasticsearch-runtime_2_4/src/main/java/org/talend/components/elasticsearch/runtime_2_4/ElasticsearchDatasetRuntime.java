@@ -19,7 +19,6 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Sample;
-import org.talend.components.adapter.beam.coders.LazyAvroCoder;
 import org.talend.components.adapter.beam.transform.DirectConsumerCollector;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.common.dataset.runtime.DatasetRuntime;
@@ -72,7 +71,6 @@ public class ElasticsearchDatasetRuntime implements DatasetRuntime<Elasticsearch
         PipelineOptions options = PipelineOptionsFactory.create();
         // options.setRunner(DirectRunner.class);
         final Pipeline p = Pipeline.create(options);
-        LazyAvroCoder.registerAsFallback(p);
 
         try (DirectConsumerCollector<IndexedRecord> collector = DirectConsumerCollector.of(consumer)) {
             // Collect a sample of the input records.
