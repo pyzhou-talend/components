@@ -44,7 +44,7 @@ public class BulkFileWriteOperation implements WriteOperation<Result> {
     }
 
     @Override
-    public Writer<Result> createWriter(RuntimeContainer adaptor) {
+    public Writer<?, Result> createWriter(RuntimeContainer adaptor) {
         return new BulkFileWriter(this, fileSink.getBulkFileProperties(), adaptor);
     }
 

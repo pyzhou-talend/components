@@ -62,7 +62,7 @@ public class BulkFileWriterTest {
         bulkFileSink.initialize(null, bfProperties);
 
         BulkFileWriteOperation writeOperation = (BulkFileWriteOperation) bulkFileSink.createWriteOperation();
-        Writer<Result> bfWriter = writeOperation.createWriter(null);
+        Writer<IndexedRecord, Result> bfWriter = (Writer<IndexedRecord, Result>) writeOperation.createWriter(null);
 
         List<IndexedRecord> rows = makeRows(10);
         bfWriter.open("foo");

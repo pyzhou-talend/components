@@ -21,7 +21,6 @@ import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.Result;
-import org.talend.components.api.component.runtime.Sink;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.container.RuntimeContainer;
@@ -34,7 +33,7 @@ import com.csvreader.CsvWriter;
 /**
  * Generate bulk file
  */
-public class BulkFileWriter implements Writer<Result> {
+public class BulkFileWriter<T extends IndexedRecord> implements Writer<T, Result> {
 
     protected RuntimeContainer container;
 
@@ -42,11 +41,7 @@ public class BulkFileWriter implements Writer<Result> {
 
     private Result result;
 
-    private Sink sink;
-
     protected BulkFileProperties bulkProperties;
-
-    private String uId;
 
     private CsvWriter csvWriter;
 
@@ -61,14 +56,12 @@ public class BulkFileWriter implements Writer<Result> {
     public BulkFileWriter(WriteOperation<Result> writeOperation, BulkFileProperties bulkProperties, RuntimeContainer container) {
         this.writeOperation = writeOperation;
         this.container = container;
-        this.sink = writeOperation.getSink();
         this.bulkProperties = bulkProperties;
         this.isAppend = bulkProperties.append.getValue();
     }
 
     @Override
     public void open(String uId) throws IOException {
-        this.uId = uId;
         this.result = new Result(uId);
         String filepath = bulkProperties.bulkFilePath.getStringValue();
         if (filepath == null || filepath.isEmpty()) {
@@ -86,16 +79,15 @@ public class BulkFileWriter implements Writer<Result> {
     private boolean fileIsEmpty = false;
 
     @Override
-    public void write(Object datum) throws IOException {
-        if (null == datum) {
+    public void write(T record) throws IOException {
+        if (null == record) {
             return;
         }
 
         if (!headerIsReady && (!isAppend || fileIsEmpty)) {
             Schema schema = new Schema.Parser().parse(bulkProperties.schema.schema.getStringValue());
 
-            if (AvroUtils.isIncludeAllFields(schema) && (datum instanceof org.apache.avro.generic.IndexedRecord)) {
-                org.apache.avro.generic.IndexedRecord record = (org.apache.avro.generic.IndexedRecord) datum;
+            if (AvroUtils.isIncludeAllFields(schema)) {
                 schema = record.getSchema();
             }
 
@@ -103,7 +95,7 @@ public class BulkFileWriter implements Writer<Result> {
             headerIsReady = true;
         }
 
-        List<String> values = getValues(datum);
+        List<String> values = getValues(record);
         csvWriter.writeRecord(values.toArray(new String[values.size()]));
         result.totalCount++;
     }
@@ -132,24 +124,16 @@ public class BulkFileWriter implements Writer<Result> {
         return headers.toArray(new String[headers.size()]);
     }
 
-    public List<String> getValues(Object datum) {
-        IndexedRecord input = getFactory(datum).convertToAvro((IndexedRecord) datum);
+    public List<String> getValues(T record) {
         List<String> values = new ArrayList<String>();
-        for (Schema.Field f : input.getSchema().getFields()) {
-            if (input.get(f.pos()) != null) {
-                values.add(String.valueOf(input.get(f.pos())));
+        for (Schema.Field f : record.getSchema().getFields()) {
+            if (record.get(f.pos()) != null) {
+                values.add(String.valueOf(record.get(f.pos())));
             } else {
                 values.add("");
             }
         }
         return values;
     }
-
-    public IndexedRecordConverter<IndexedRecord, IndexedRecord> getFactory(Object datum) {
-        if (null == factory) {
-            factory = new GenericIndexedRecordConverter();
-            factory.setSchema(((IndexedRecord) datum).getSchema());
-        }
-        return factory;
-    }
+    
 }
