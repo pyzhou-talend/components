@@ -12,9 +12,15 @@
 // ============================================================================
 package org.talend.components.kafka.runtime;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 
+import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.io.BinaryEncoder;
+import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.EncoderFactory;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -31,6 +37,7 @@ import org.talend.components.api.component.runtime.RuntimableRuntime;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.kafka.dataset.KafkaDatasetProperties;
 import org.talend.components.kafka.output.KafkaOutputProperties;
+import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.properties.ValidationResult;
 
 public class KafkaOutputPTransformRuntime extends PTransform<PCollection<IndexedRecord>, PDone>
@@ -68,8 +75,7 @@ public class KafkaOutputPTransformRuntime extends PTransform<PCollection<Indexed
         case ROUND_ROBIN: {
             if (useAvro) {
                 // TODO for now use incoming avro schema directly, do not check configured schema, improvement it.
-                return (PDone) objectPCollection
-                        .apply(MapElements.via(new AvroToByteArray()))
+                return (PDone) objectPCollection.apply(MapElements.via(new AvroToByteArray()))
                         .apply(kafkaWrite.withValueSerializer(ByteArraySerializer.class).values());
             } else { // csv
                 return (PDone) objectPCollection
@@ -91,10 +97,11 @@ public class KafkaOutputPTransformRuntime extends PTransform<PCollection<Indexed
 
     public static class AvroToByteArrayKV extends SimpleFunction<KV<byte[], IndexedRecord>, KV<byte[], byte[]>> {
 
+        private AvroToByteArray converter = new AvroToByteArray();
+
         @Override
         public KV<byte[], byte[]> apply(KV<byte[], IndexedRecord> input) {
-            //TODO(bchen) implement it
-            return KV.of(input.getKey(), new byte[0]);
+            return KV.of(input.getKey(), converter.apply(input.getValue()));
         }
 
     }
@@ -103,8 +110,18 @@ public class KafkaOutputPTransformRuntime extends PTransform<PCollection<Indexed
 
         @Override
         public byte[] apply(IndexedRecord input) {
-            //TODO(bchen) implement it
-            return new byte[0];
+            try {
+                DatumWriter<IndexedRecord> datumWriter = new GenericDatumWriter(input.getSchema());
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(out, null);
+                datumWriter.write(input, encoder);
+                encoder.flush();
+                byte[] result = out.toByteArray();
+                out.close();
+                return result;
+            } catch (IOException e) {
+                throw TalendRuntimeException.createUnexpectedException(e);
+            }
         }
 
     }

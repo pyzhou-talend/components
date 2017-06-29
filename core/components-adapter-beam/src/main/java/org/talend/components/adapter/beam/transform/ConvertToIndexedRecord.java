@@ -29,11 +29,9 @@ import org.talend.daikon.avro.converter.IndexedRecordConverter;
  * configured to "know" how to interpret technology-specific types (in the current virtual machine).
  *
  * @param <DatumT> The type of the incoming collection.
- * @param <AvroT> If more type information is known about the expected output, it can be included. Otherwise, this
- * should be just an IndexedRecord.
  */
-public class ConvertToIndexedRecord<DatumT, AvroT extends IndexedRecord> extends
-        PTransform<PCollection<DatumT>, PCollection<AvroT>> {
+public class ConvertToIndexedRecord<DatumT> extends
+        PTransform<PCollection<DatumT>, PCollection<IndexedRecord>> {
 
     /** Use the {@link #of()} method to create. */
     protected ConvertToIndexedRecord() {
@@ -42,8 +40,8 @@ public class ConvertToIndexedRecord<DatumT, AvroT extends IndexedRecord> extends
     /**
      * @return an instance of this transformation.
      */
-    public static <DatumT, AvroT extends IndexedRecord> ConvertToIndexedRecord<DatumT, AvroT> of() {
-        return new ConvertToIndexedRecord<DatumT, AvroT>();
+    public static <DatumT> ConvertToIndexedRecord<DatumT> of() {
+        return new ConvertToIndexedRecord<DatumT>();
     }
 
     /**
@@ -53,21 +51,21 @@ public class ConvertToIndexedRecord<DatumT, AvroT extends IndexedRecord> extends
      * @param datum the datum to convert.
      * @return its representation as an Avro {@link IndexedRecord}.
      */
-    public static <DatumT, AvroT extends IndexedRecord> AvroT convertToAvro(DatumT datum) {
+    public static <DatumT> IndexedRecord convertToAvro(DatumT datum) {
         IndexedRecordConverter c = new AvroRegistry().createIndexedRecordConverter(datum.getClass());
         if (c == null) {
             throw new Pipeline.PipelineExecutionException(new RuntimeException("Cannot convert " + datum.getClass()
                     + " to IndexedRecord."));
         }
-        return (AvroT) c.convertToAvro(datum);
+        return (IndexedRecord) c.convertToAvro(datum);
     }
 
     @Override
-    public PCollection<AvroT> expand(PCollection<DatumT> input) {
-        return input.apply(ParDo.of(new DoFn<DatumT, AvroT>() {
+    public PCollection<IndexedRecord> expand(PCollection<DatumT> input) {
+        return input.apply(ParDo.of(new DoFn<DatumT, IndexedRecord>() {
 
             /** The converter is cached for performance. */
-            private transient IndexedRecordConverter<? super DatumT, ?> converter;
+            private transient IndexedRecordConverter<? super DatumT, IndexedRecord> converter;
 
             @DoFn.ProcessElement
             public void processElement(ProcessContext c) throws Exception {
@@ -76,7 +74,7 @@ public class ConvertToIndexedRecord<DatumT, AvroT extends IndexedRecord> extends
                     return;
                 }
                 if (converter == null) {
-                    converter = (IndexedRecordConverter<? super DatumT, ? extends IndexedRecord>) new AvroRegistry()
+                    converter = (IndexedRecordConverter<? super DatumT, IndexedRecord>) new AvroRegistry()
                             .createIndexedRecordConverter(in.getClass());
                     // If the converter was still not successful, the pipeline should fail.
                     if (converter == null) {
@@ -84,7 +82,7 @@ public class ConvertToIndexedRecord<DatumT, AvroT extends IndexedRecord> extends
                         throw new RuntimeException("Cannot find converter for " + in.getClass());
                     }
                 }
-                c.output((AvroT) converter.convertToAvro(in));
+                c.output(converter.convertToAvro(in));
             }
 
         }));

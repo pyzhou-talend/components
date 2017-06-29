@@ -75,14 +75,14 @@ public class KafkaInputPTransformRuntime extends PTransform<PBegin, PCollection<
                 // use component's schema directly as we are avro natural
                 schema = properties.getDatasetProperties().main.schema.getValue();
             }
-            return kafkaRecords.apply(ParDo.of(new ConvertToAvro(schema.toString()))).setCoder(getDefaultOutputCoder());
+            return kafkaRecords.apply(ParDo.of(new ConvertToAvro(schema.toString())));
         }
         case CSV: {
             // FIXME(bchen) KafkaAvroRegistry do not have way to record adaptation, it infer schema by the data rather
             // than use the defined schema
             return ((PCollection) kafkaRecords
                     .apply(ParDo.of(new ExtractCsvSplit(properties.getDatasetProperties().fieldDelimiter.getValue())))
-                    .apply((PTransform) ConvertToIndexedRecord.of())).setCoder(getDefaultOutputCoder());
+                    .apply((PTransform) ConvertToIndexedRecord.of()));
         }
         default:
             throw new RuntimeException("To be implemented: " + properties.getDatasetProperties().valueFormat.getValue());
@@ -94,11 +94,6 @@ public class KafkaInputPTransformRuntime extends PTransform<PBegin, PCollection<
     public ValidationResult initialize(RuntimeContainer container, KafkaInputProperties properties) {
         this.properties = properties;
         return ValidationResult.OK;
-    }
-
-    @Override
-    public Coder getDefaultOutputCoder() {
-        return LazyAvroCoder.of();
     }
 
     public static class ExtractRecord extends DoFn<KafkaRecord<byte[], byte[]>, KV<byte[], byte[]>> {

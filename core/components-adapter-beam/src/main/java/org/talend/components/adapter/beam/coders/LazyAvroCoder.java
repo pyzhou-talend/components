@@ -15,10 +15,7 @@ package org.talend.components.adapter.beam.coders;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,15 +24,8 @@ import org.apache.avro.generic.IndexedRecord;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AtomicCoder;
 import org.apache.beam.sdk.coders.AvroCoder;
-import org.apache.beam.sdk.coders.CannotProvideCoderException;
-import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.CoderException;
-import org.apache.beam.sdk.coders.CoderProvider;
-import org.apache.beam.sdk.coders.CoderProviders;
-import org.apache.beam.sdk.extensions.protobuf.ProtoCoder;
-import org.apache.beam.sdk.values.TypeDescriptor;
 import org.talend.components.adapter.beam.transform.ConvertToIndexedRecord;
-import org.talend.daikon.avro.AvroRegistry;
 
 public class LazyAvroCoder<T> extends AtomicCoder<Object> {
 
