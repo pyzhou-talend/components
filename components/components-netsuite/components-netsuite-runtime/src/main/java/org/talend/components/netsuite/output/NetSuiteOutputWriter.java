@@ -41,10 +41,10 @@ import org.talend.components.netsuite.client.model.TypeDesc;
  *
  * Subclasses override {@link #doWrite(List)} to perform required output operation:
  * <ul>
- *     <li>Add - {@link NetSuiteAddWriter}</li>
- *     <li>Update - {@link NetSuiteUpdateWriter}</li>
- *     <li>Upsert - {@link NetSuiteUpsertWriter}</li>
- *     <li>Delete - {@link NetSuiteDeleteWriter}</li>
+ * <li>Add - {@link NetSuiteAddWriter}</li>
+ * <li>Update - {@link NetSuiteUpdateWriter}</li>
+ * <li>Upsert - {@link NetSuiteUpsertWriter}</li>
+ * <li>Delete - {@link NetSuiteDeleteWriter}</li>
  * </ul>
  *
  * @param <T> type of NetSuite objects that are passed to {@link NetSuiteClientService}
@@ -99,7 +99,8 @@ public abstract class NetSuiteOutputWriter<T, RefT> implements WriterWithFeedbac
     /** Translates {@code IndexedRecord} to NetSuite data object. */
     protected NsObjectOutputTransducer transducer;
 
-    public NetSuiteOutputWriter(NetSuiteWriteOperation writeOperation, RuntimeContainer container, MetaDataSource metaDataSource) {
+    public NetSuiteOutputWriter(NetSuiteWriteOperation writeOperation, RuntimeContainer container,
+            MetaDataSource metaDataSource) {
         this.writeOperation = writeOperation;
         this.container = container;
         this.metaDataSource = metaDataSource;
@@ -170,7 +171,8 @@ public abstract class NetSuiteOutputWriter<T, RefT> implements WriterWithFeedbac
     /**
      * Initialize transducer.
      *
-     * <p>Subclasses can override this method to customize transducer.
+     * <p>
+     * Subclasses can override this method to customize transducer.
      */
     protected void initTransducer() {
         transducer = new NsObjectOutputTransducer(clientService, typeDesc.getTypeName());
@@ -386,6 +388,11 @@ public abstract class NetSuiteOutputWriter<T, RefT> implements WriterWithFeedbac
     @Override
     public WriteOperation<Result> getWriteOperation() {
         return writeOperation;
+    }
+
+    @Override
+    public void cleanFeedbackData() {
+        clearWriteFeedback();
     }
 
 }

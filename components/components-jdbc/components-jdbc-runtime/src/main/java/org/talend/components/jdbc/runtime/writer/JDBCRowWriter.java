@@ -212,7 +212,8 @@ public class JDBCRowWriter implements WriterWithFeedback<Result, IndexedRecord, 
             }
 
             if (conn != null) {
-                // need to call the commit before close for some database when do some read action like reading the resultset
+                // need to call the commit before close for some database when do some read action like reading the
+                // resultset
                 conn.commit();
 
                 conn.close();
@@ -332,6 +333,12 @@ public class JDBCRowWriter implements WriterWithFeedback<Result, IndexedRecord, 
 
         result.successCount = successCount;
         result.rejectCount = rejectCount;
+    }
+
+    @Override
+    public void cleanFeedbackData() {
+        successfulWrites.clear();
+        rejectedWrites.clear();
     }
 
 }

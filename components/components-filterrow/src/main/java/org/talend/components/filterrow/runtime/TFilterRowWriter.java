@@ -172,4 +172,10 @@ public class TFilterRowWriter implements WriterWithFeedback<Result, IndexedRecor
         return successResult;
     }
 
+    @Override
+    public void cleanFeedbackData() {
+        success.clear();
+        reject.clear();
+    }
+
 }

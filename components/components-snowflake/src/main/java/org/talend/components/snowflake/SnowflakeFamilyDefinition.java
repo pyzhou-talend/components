@@ -15,6 +15,8 @@ package org.talend.components.snowflake;
 import org.talend.components.api.AbstractComponentFamilyDefinition;
 import org.talend.components.api.ComponentInstaller;
 import org.talend.components.api.Constants;
+import org.talend.components.snowflake.tsnowflakeclose.Fake1Definition;
+import org.talend.components.snowflake.tsnowflakeclose.Fake2Definition;
 import org.talend.components.snowflake.tsnowflakeclose.TSnowflakeCloseDefinition;
 import org.talend.components.snowflake.tsnowflakeconnection.TSnowflakeConnectionDefinition;
 import org.talend.components.snowflake.tsnowflakeinput.TSnowflakeInputDefinition;
@@ -40,7 +42,7 @@ public class SnowflakeFamilyDefinition extends AbstractComponentFamilyDefinition
                 new TSnowflakeCloseDefinition(),
                 // Component wizards
                 new SnowflakeConnectionWizardDefinition(), new SnowflakeConnectionEditWizardDefinition(),
-                new SnowflakeTableWizardDefinition());
+                new SnowflakeTableWizardDefinition(), new Fake1Definition(), new Fake2Definition());
     }
 
     @Override

@@ -93,11 +93,11 @@ public class AzureStorageTableWriter implements WriterWithFeedback<Result, Index
     private List<IndexedRecord> rejectedWrites = new ArrayList<>();
 
     private String partitionKey;
-    
+
     private String rowKey;
-    
+
     private Map<String, String> nameMappings;
-    
+
     private Boolean useNameMappings = Boolean.FALSE;
 
     private static final int MAX_RECORDS_TO_ENQUEUE = 250;
@@ -263,7 +263,7 @@ public class AzureStorageTableWriter implements WriterWithFeedback<Result, Index
 
             String sName = f.name(); // schema name
             String mName = getMappedNameIfNecessary(sName); // mapped name
-            
+
             Schema fSchema = f.schema();
             if (fSchema.getType() == Type.UNION) {
                 for (Schema s : f.schema().getTypes()) {
@@ -273,7 +273,6 @@ public class AzureStorageTableWriter implements WriterWithFeedback<Result, Index
                     }
                 }
             }
-
 
             if (sName.equals(partitionKey)) {
                 entity.setPartitionKey((String) indexedRecord.get(f.pos()));
@@ -329,7 +328,7 @@ public class AzureStorageTableWriter implements WriterWithFeedback<Result, Index
         entity.setProperties(entityProps);
         return entity;
     }
-    
+
     /**
      * this method return the mapped name is useNameMappings is true else it return the original name
      */
@@ -495,5 +494,11 @@ public class AzureStorageTableWriter implements WriterWithFeedback<Result, Index
                 rejectedWrites.add(reject);
             }
         }
+    }
+
+    @Override
+    public void cleanFeedbackData() {
+        rejectedWrites.clear();
+        successfulWrites.clear();
     }
 }

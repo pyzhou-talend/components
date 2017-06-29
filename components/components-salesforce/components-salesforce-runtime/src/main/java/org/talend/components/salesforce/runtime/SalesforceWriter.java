@@ -222,7 +222,8 @@ final class SalesforceWriter implements WriterWithFeedback<Result, IndexedRecord
                     String lookupRelationshipFieldName = relationMap.get("lookupRelationshipFieldName");
                     so.setField(lookupRelationshipFieldName, null);
                     so.getChild(lookupRelationshipFieldName).setField("type", relationMap.get("lookupFieldModuleName"));
-                    // No need get the real type. Because of the External IDs should not be special type in addSObjectField()
+                    // No need get the real type. Because of the External IDs should not be special type in
+                    // addSObjectField()
                     addSObjectField(so.getChild(lookupRelationshipFieldName), se.schema().getType(),
                             relationMap.get("lookupFieldExternalIdName"), value);
                 } else {
@@ -635,5 +636,10 @@ final class SalesforceWriter implements WriterWithFeedback<Result, IndexedRecord
     private void cleanFeedbackRecords() {
         successfulWrites.clear();
         rejectedWrites.clear();
+    }
+
+    @Override
+    public void cleanFeedbackData() {
+        cleanFeedbackRecords();
     }
 }

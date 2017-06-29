@@ -184,7 +184,7 @@ public final class SnowflakeWriter implements WriterWithFeedback<Result, Indexed
 
         // input and mainSchema synchronization. Such situation is useful in case of Dynamic
         if (isFirst) {
-             collectedFields = new ArrayList<>();
+            collectedFields = new ArrayList<>();
             for (Schema.Field item : fields) {
                 Schema.Field fieldFromMainSchema = mainSchema.getField(item.name());
                 if (fieldFromMainSchema != null) {
@@ -262,6 +262,12 @@ public final class SnowflakeWriter implements WriterWithFeedback<Result, Indexed
     @Override
     public WriteOperation<Result> getWriteOperation() {
         return snowflakeWriteOperation;
+    }
+
+    @Override
+    public void cleanFeedbackData() {
+        rejectedWrites.clear();
+        successfulWrites.clear();
     }
 
 }

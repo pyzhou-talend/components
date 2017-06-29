@@ -327,4 +327,10 @@ abstract public class JDBCOutputWriter implements WriterWithFeedback<Result, Ind
         result.rejectCount = rejectCount;
     }
 
+    @Override
+    public void cleanFeedbackData() {
+        successfulWrites.clear();
+        rejectedWrites.clear();
+    }
+
 }
