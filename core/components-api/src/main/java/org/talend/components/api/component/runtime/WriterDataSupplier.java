@@ -15,6 +15,7 @@ package org.talend.components.api.component.runtime;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.error.ComponentsErrorCode;
@@ -25,7 +26,7 @@ import org.talend.daikon.java8.Supplier;
  * Provides a way to iterate over a reader data until limit is reached, closes it when necessary. The data is consumed
  * via a Supplier, which performs required action on data
  */
-public class WriterDataSupplier<R, I> {
+public class WriterDataSupplier<R, I extends IndexedRecord> {
 
     private WriteOperation<R> writeOperation;
 
@@ -53,7 +54,7 @@ public class WriterDataSupplier<R, I> {
      */
     public void writeData() {
         writeOperation.initialize(container);
-        Writer<R> writer = writeOperation.createWriter(container);
+        Writer<I, R> writer = (Writer<I, R>) writeOperation.createWriter(container);
         try {
             writer.open(RandomStringUtils.random(12));
             try {

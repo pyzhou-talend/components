@@ -15,6 +15,8 @@ package org.talend.components.api.component.runtime;
 
 import java.io.IOException;
 
+import org.apache.avro.generic.IndexedRecord;
+
 /**
  * A Writer writes a bundle of elements from a PCollection to a sink. {@link Writer#open} is called before writing
  * begins and {@link Writer#close} is called after all elements in the bundle have been written. {@link Writer#write} writes an
@@ -28,8 +30,9 @@ import java.io.IOException;
  * See {@link Sink} for more detailed documentation about the process of writing to a Sink.
  *
  * @param <WriteT> The writer results type (e.g., the bundle's output filename, as String)
+ * @param <T> Type of record to be written
  */
-public interface Writer<WriteT> {
+public interface Writer<T extends IndexedRecord, WriteT> {
 
     /**
      * Performs bundle initialization. For example, creates a temporary file for writing or initializes any state that
@@ -45,7 +48,7 @@ public interface Writer<WriteT> {
     /**
      * Called for each value in the bundle.
      */
-    void write(Object object) throws IOException;
+    void write(T record) throws IOException;
 
     /**
      * Finishes writing the bundle. Closes any resources used for writing the bundle.

@@ -83,7 +83,7 @@ public interface WriteOperation<WriteT> extends Serializable {
      * <p>
      * Must not mutate the state of the WriteOperation.
      */
-    Writer<WriteT> createWriter(RuntimeContainer adaptor);
+    Writer<?, WriteT> createWriter(RuntimeContainer adaptor);
 
     /**
      * Returns the Sink that this write operation writes to.

@@ -13,7 +13,6 @@
 package org.talend.components.api.component.runtime;
 
 import org.apache.avro.generic.IndexedRecord;
-import org.talend.daikon.avro.AvroRegistry;
 
 /**
  * In certain cases, a {@link Sink} is not the "end" of a Pipeline, but can provide records to indicate more information
@@ -31,12 +30,13 @@ import org.talend.daikon.avro.AvroRegistry;
  * framework: it is either an {@link IndexedRecord}, or provides a mechanism to convert to an {@link IndexedRecord} via
  * the {@link AvroRegistry}.
  *
+ * @param <T> Type of record to be written
  * @param MainT   the type of the output records that indicate success. This can be the same as the incoming record or can
  *                be enriched with information from the write (often the unique identifier assigned to the record on write, if any).
  * @param RejectT the type of the output records that indicate failure. This can be the same as the incoming record or
  *                can be enriched with information why the record was rejected.
  */
-public interface WriterWithFeedback<WriteT, MainT, RejectT> extends Writer<WriteT> {
+public interface WriterWithFeedback<T extends IndexedRecord, WriteT, MainT, RejectT> extends Writer<T, WriteT> {
 
     /**
      * @return The list of records immediately after a write operation that were successfully written to the {@link Sink}.
