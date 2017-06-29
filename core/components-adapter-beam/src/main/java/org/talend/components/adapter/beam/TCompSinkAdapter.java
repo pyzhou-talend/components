@@ -69,7 +69,10 @@ public class TCompSinkAdapter extends Sink<IndexedRecord> {
 
         @Override
         public Sink.Writer<IndexedRecord, Result> createWriter(PipelineOptions options) throws Exception {
-            return new TCompWriterAdapter(tCompWriteOperation.createWriter(null), this);
+            return new TCompWriterAdapter(
+                    (org.talend.components.api.component.runtime.Writer<IndexedRecord, Result>) tCompWriteOperation
+                            .createWriter(null),
+                    this);
         }
 
         @Override
@@ -84,11 +87,11 @@ public class TCompSinkAdapter extends Sink<IndexedRecord> {
 
     public static class TCompWriterAdapter extends Sink.Writer<IndexedRecord, Result> {
 
-        private org.talend.components.api.component.runtime.Writer<Result> tCompWriter;
+        private org.talend.components.api.component.runtime.Writer<IndexedRecord, Result> tCompWriter;
 
         private TCompWriteOperationAdapter wo;
 
-        public TCompWriterAdapter(org.talend.components.api.component.runtime.Writer<Result> tCompWriter,
+        public TCompWriterAdapter(org.talend.components.api.component.runtime.Writer<IndexedRecord, Result> tCompWriter,
                 TCompWriteOperationAdapter wo) {
             this.tCompWriter = tCompWriter;
             this.wo = wo;

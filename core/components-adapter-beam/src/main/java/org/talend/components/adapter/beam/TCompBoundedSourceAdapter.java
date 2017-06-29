@@ -23,8 +23,6 @@ import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.io.BoundedSource;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.talend.components.adapter.beam.coders.LazyAvroCoder;
-import org.talend.daikon.avro.AvroRegistry;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 /**
  * Make the TCOMP BoundedSource work on Beam runtime, wrapper it with relate beam interface
@@ -44,7 +42,7 @@ public class TCompBoundedSourceAdapter extends BoundedSource<IndexedRecord> {
             throws Exception {
         List<? extends org.talend.components.api.component.runtime.BoundedSource> boundedSources = tCompSource
                 .splitIntoBundles(desiredBundleSizeBytes, null);
-        List<TCompBoundedSourceAdapter> sources = new ArrayList();
+        List<TCompBoundedSourceAdapter> sources = new ArrayList<>();
         for (org.talend.components.api.component.runtime.BoundedSource boundedSource : boundedSources) {
             sources.add(new TCompBoundedSourceAdapter(boundedSource));
         }
@@ -71,15 +69,13 @@ public class TCompBoundedSourceAdapter extends BoundedSource<IndexedRecord> {
         return LazyAvroCoder.of();
     }
 
-    protected static class TCompReaderAdapter<T> extends BoundedSource.BoundedReader {
+    protected static class TCompReaderAdapter extends BoundedSource.BoundedReader<IndexedRecord> {
 
-        IndexedRecordConverter<T, ?> indexedRecordConverter;
-
-        private org.talend.components.api.component.runtime.BoundedReader<T> reader;
+        private org.talend.components.api.component.runtime.BoundedReader<IndexedRecord> reader;
 
         private TCompBoundedSourceAdapter source;
 
-        public TCompReaderAdapter(org.talend.components.api.component.runtime.BoundedReader reader, TCompBoundedSourceAdapter source) {
+        public TCompReaderAdapter(org.talend.components.api.component.runtime.BoundedReader<IndexedRecord> reader, TCompBoundedSourceAdapter source) {
             this.reader = reader;
             this.source = source;
         }
@@ -93,25 +89,14 @@ public class TCompBoundedSourceAdapter extends BoundedSource<IndexedRecord> {
         }
 
         public IndexedRecord getCurrent() throws NoSuchElementException {
-            T current = reader.getCurrent();
-            if (current == null) {
-                return null;
-            }
-            if (current instanceof IndexedRecord) {
-                return (IndexedRecord) current;
-            }
-            if (indexedRecordConverter == null) {
-                indexedRecordConverter = (IndexedRecordConverter<T, ?>) (new AvroRegistry())
-                        .createIndexedRecordConverter(current.getClass());
-            }
-            return indexedRecordConverter.convertToAvro(current);
+            return reader.getCurrent();
         }
 
         public void close() throws IOException {
             reader.close();
         }
 
-        public BoundedSource getCurrentSource() {
+        public BoundedSource<IndexedRecord> getCurrentSource() {
             return source;
         }
     }
