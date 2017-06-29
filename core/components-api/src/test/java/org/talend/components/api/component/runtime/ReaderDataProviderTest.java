@@ -12,9 +12,16 @@
 // ============================================================================
 package org.talend.components.api.component.runtime;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,62 +29,77 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.IndexedRecord;
 import org.joda.time.Instant;
 import org.junit.Test;
 import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.java8.Consumer;
 
 public class ReaderDataProviderTest {
+    
+    public static final Schema SCHEMA = SchemaBuilder.record("record").fields().requiredString("count").endRecord();
+    
+    public static final IndexedRecord RECORD1 = new GenericData.Record(SCHEMA);
+    
+    public static final IndexedRecord RECORD2 = new GenericData.Record(SCHEMA);
+    
+    static {
+        RECORD1.put(0, "1");
+        RECORD2.put(0, "2");
+    }
 
     @Test
     public void testProviderEmptyReader() throws IOException {
-        Reader readerMock = mock(Reader.class);
+        Reader<IndexedRecord> readerMock = mock(Reader.class);
         when(readerMock.start()).thenReturn(false);
-        Consumer consumer = mock(Consumer.class);
-        ReaderDataProvider<Object> readerDataProvider = new ReaderDataProvider<>(readerMock, 100, consumer);
+        Consumer<IndexedRecord> consumer = mock(Consumer.class);
+        ReaderDataProvider<IndexedRecord> readerDataProvider = new ReaderDataProvider<>(readerMock, 100, consumer);
         readerDataProvider.retrieveData();
-        verify(consumer, times(0)).accept(any());
+        verify(consumer, times(0)).accept((IndexedRecord) any());
         verify(readerMock, times(1)).close();
     }
 
     @Test
     public void testReaderDataProviderWithRecords() throws IOException {
-        Reader<String> reader = spy(new OneTwoReader());
-        Consumer consumer = mock(Consumer.class);
-        ReaderDataProvider<String> readerDataProvider = new ReaderDataProvider<>(reader, 100, consumer);
+        Reader<IndexedRecord> reader = spy(new OneTwoReader());
+        Consumer<IndexedRecord> consumer = mock(Consumer.class);
+        ReaderDataProvider<IndexedRecord> readerDataProvider = new ReaderDataProvider<>(reader, 100, consumer);
         readerDataProvider.retrieveData();
-        verify(consumer).accept("1");
-        verify(consumer).accept("2");
-        verify(consumer, times(2)).accept(any());
+        verify(consumer).accept(RECORD1);
+        verify(consumer).accept(RECORD2);
+        verify(consumer, times(2)).accept((IndexedRecord) any());
         verify(reader, times(1)).close();
     }
 
     @Test
     public void testReaderDataProviderWithLimitTo0() throws IOException {
-        Reader<String> reader = spy(new OneTwoReader());
-        Consumer consumer = mock(Consumer.class);
-        ReaderDataProvider<String> readerDataProvider = new ReaderDataProvider<>(reader, 0, consumer);
+        Reader<IndexedRecord> reader = spy(new OneTwoReader());
+        Consumer<IndexedRecord> consumer = mock(Consumer.class);
+        ReaderDataProvider<IndexedRecord> readerDataProvider = new ReaderDataProvider<>(reader, 0, consumer);
         readerDataProvider.retrieveData();
-        verify(consumer, never()).accept(any());
+        verify(consumer, never()).accept((IndexedRecord) any());
         verify(reader, times(1)).close();
     }
 
     @Test
     public void testReaderDataProviderWithLimitTo1() throws IOException {
-        Reader<String> reader = spy(new OneTwoReader());
-        Consumer consumer = mock(Consumer.class);
-        ReaderDataProvider<String> readerDataProvider = new ReaderDataProvider<>(reader, 1, consumer);
+        Reader<IndexedRecord> reader = spy(new OneTwoReader());
+        Consumer<IndexedRecord> consumer = mock(Consumer.class);
+        ReaderDataProvider<IndexedRecord> readerDataProvider = new ReaderDataProvider<>(reader, 1, consumer);
         readerDataProvider.retrieveData();
-        verify(consumer).accept("1");
-        verify(consumer, times(1)).accept(any());
+        verify(consumer).accept(RECORD1);
+        verify(consumer, times(1)).accept((IndexedRecord) any());
         verify(reader, times(1)).close();
     }
 
     @Test
     public void testReaderDataProviderWithException() throws IOException {
-        Reader<String> reader = mock(Reader.class);
-        Consumer consumer = mock(Consumer.class);
-        ReaderDataProvider<String> readerDataProvider = new ReaderDataProvider<>(reader, 100, consumer);
+        Reader<IndexedRecord> reader = mock(Reader.class);
+        Consumer<IndexedRecord> consumer = mock(Consumer.class);
+        ReaderDataProvider<IndexedRecord> readerDataProvider = new ReaderDataProvider<>(reader, 100, consumer);
 
         // reader start throws an IOE
         when(reader.start()).thenThrow(new IOException());
@@ -113,11 +135,11 @@ public class ReaderDataProviderTest {
         }
     }
 
-    public class OneTwoReader implements Reader<String> {
+    public class OneTwoReader implements Reader<IndexedRecord> {
 
-        Iterator<String> it = Arrays.asList("1", "2").iterator();
+        Iterator<IndexedRecord> it = Arrays.asList(RECORD1, RECORD2).iterator();
 
-        private String current;
+        private IndexedRecord current;
 
         @Override
         public boolean start() throws IOException {
@@ -136,7 +158,7 @@ public class ReaderDataProviderTest {
         }
 
         @Override
-        public String getCurrent() throws NoSuchElementException {
+        public IndexedRecord getCurrent() throws NoSuchElementException {
             if (current == null) {
                 throw new NoSuchElementException();
             }

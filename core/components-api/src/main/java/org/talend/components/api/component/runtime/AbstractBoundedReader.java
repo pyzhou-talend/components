@@ -15,12 +15,13 @@ package org.talend.components.api.component.runtime;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.joda.time.Instant;
 
 /**
  * Basic implementation of {@link BoundedReader}, useful for those readers that don't require sharding.
  */
-public abstract class AbstractBoundedReader<T> implements BoundedReader<T> {
+public abstract class AbstractBoundedReader<T extends IndexedRecord> implements BoundedReader<T> {
 
     private final BoundedSource source;
 

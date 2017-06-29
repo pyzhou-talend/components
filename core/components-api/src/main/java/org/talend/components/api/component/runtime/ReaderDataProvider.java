@@ -15,6 +15,7 @@ package org.talend.components.api.component.runtime;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.exception.error.ComponentsErrorCode;
 import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.java8.Consumer;
@@ -23,7 +24,7 @@ import org.talend.daikon.java8.Consumer;
  * Provides a way to iterate over a reader data until limit is reached, closes it when necessary. 
  * The data is consumed via a Consumer, which performs required action on data
  */
-public class ReaderDataProvider<T> {
+public class ReaderDataProvider<T extends IndexedRecord> {
 
     private Reader<T> reader;
 

@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.joda.time.Instant;
 import org.talend.components.api.component.ComponentDefinition;
 
@@ -82,7 +83,7 @@ import org.talend.components.api.component.ComponentDefinition;
  * single thread at once. However, {@link #getCurrentSource} needs to be thread-safe, and other functions should assume that its
  * returned value can change asynchronously.
  */
-public interface Reader<T> extends AutoCloseable {
+public interface Reader<T extends IndexedRecord> extends AutoCloseable {
 
     /**
      * Initializes the reader and advances the reader to the first record.

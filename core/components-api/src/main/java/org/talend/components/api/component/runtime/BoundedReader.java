@@ -14,6 +14,7 @@ package org.talend.components.api.component.runtime;
 
 import java.util.NoSuchElementException;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.joda.time.Instant;
 
 /**
@@ -44,7 +45,7 @@ import org.joda.time.Instant;
  * thread-safe way, otherwise data loss is possible.
  *
  */
-public interface BoundedReader<T> extends Reader<T> {
+public interface BoundedReader<T extends IndexedRecord> extends Reader<T> {
 
     /**
      * Returns a value in [0, 1] representing approximately what fraction of the {@link #getCurrentSource current
