@@ -54,7 +54,8 @@ public class KafkaOutputPTransformRuntime extends PTransform<PCollection<Indexed
 
         KafkaIO.Write<byte[], byte[]> kafkaWrite = KafkaIO.<byte[], byte[]> write()
                 .withBootstrapServers(properties.getDatasetProperties().getDatastoreProperties().brokers.getValue())
-                .withTopic(properties.getDatasetProperties().topic.getValue())
+                .withTopic(properties.getDatasetProperties().topic.getValue()).withKeySerializer(ByteArraySerializer.class)
+                .withValueSerializer(ByteArraySerializer.class)
                 .updateProducerProperties(KafkaConnection.createOutputMaps(properties));
 
         switch (properties.partitionType.getValue()) {
@@ -63,25 +64,21 @@ public class KafkaOutputPTransformRuntime extends PTransform<PCollection<Indexed
             if (useAvro) {
                 // TODO for now use incoming avro schema directly, do not check configured schema, improvement it.
                 return ((PCollection<KV<byte[], byte[]>>) pc1.apply("avroToByteArray", MapElements.via(new AvroToByteArrayKV())))
-                        .apply(kafkaWrite.withKeySerializer(ByteArraySerializer.class)
-                                .withValueSerializer(ByteArraySerializer.class));
+                        .apply(kafkaWrite);
             } else { // csv
                 return ((PCollection<KV<byte[], byte[]>>) pc1.apply("formatCsvKV",
                         MapElements.via(new FormatCsvKV(properties.getDatasetProperties().fieldDelimiter.getValue()))))
-                                .apply(kafkaWrite.withKeySerializer(ByteArraySerializer.class)
-                                        .withValueSerializer(ByteArraySerializer.class));
+                                .apply(kafkaWrite);
             }
         }
         case ROUND_ROBIN: {
             if (useAvro) {
                 // TODO for now use incoming avro schema directly, do not check configured schema, improvement it.
-                return (PDone) objectPCollection.apply(MapElements.via(new AvroToByteArray()))
-                        .apply(kafkaWrite.withValueSerializer(ByteArraySerializer.class).values());
+                return (PDone) objectPCollection.apply(MapElements.via(new AvroToByteArray())).apply(kafkaWrite.values());
             } else { // csv
                 return (PDone) objectPCollection
                         .apply(MapElements.via(new FormatCsv(properties.getDatasetProperties().fieldDelimiter.getValue())))
-                        .apply(kafkaWrite.withKeySerializer(ByteArraySerializer.class)
-                                .withValueSerializer(ByteArraySerializer.class).values());
+                        .apply(kafkaWrite.values());
             }
         }
         default:

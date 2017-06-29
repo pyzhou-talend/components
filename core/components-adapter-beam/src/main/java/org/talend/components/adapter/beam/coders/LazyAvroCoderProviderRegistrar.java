@@ -1,12 +1,22 @@
+// ============================================================================
+//
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
+//
+// This source code is available under agreement available at
+// %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
+//
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
+//
+// ============================================================================
+
 package org.talend.components.adapter.beam.coders;
 
 import java.util.List;
 
-import org.apache.avro.generic.IndexedRecord;
 import org.apache.beam.sdk.coders.CoderProvider;
 import org.apache.beam.sdk.coders.CoderProviderRegistrar;
-import org.apache.beam.sdk.coders.CoderProviders;
-import org.apache.beam.sdk.values.TypeDescriptor;
 
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableList;
@@ -19,6 +29,6 @@ public class LazyAvroCoderProviderRegistrar implements CoderProviderRegistrar {
 
     @Override
     public List<CoderProvider> getCoderProviders() {
-        return ImmutableList.of(CoderProviders.forCoder(TypeDescriptor.of(IndexedRecord.class), LazyAvroCoder.of()));
+        return ImmutableList.of(LazyAvroCoder.getCoderProvider());
     }
 }

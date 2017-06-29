@@ -19,6 +19,8 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.talend.daikon.avro.AvroRegistry;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
@@ -32,6 +34,8 @@ import org.talend.daikon.avro.converter.IndexedRecordConverter;
  */
 public class ConvertToIndexedRecord<DatumT> extends
         PTransform<PCollection<DatumT>, PCollection<IndexedRecord>> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ConvertToIndexedRecord.class);
 
     /** Use the {@link #of()} method to create. */
     protected ConvertToIndexedRecord() {
@@ -47,7 +51,7 @@ public class ConvertToIndexedRecord<DatumT> extends
     /**
      * Converts any datum to an {@link IndexedRecord} representation as if it were passed in the transformation. This
      * might be an expensive call, so it should only be used for sampling data (not in a processing-intensive loop).
-     * 
+     *
      * @param datum the datum to convert.
      * @return its representation as an Avro {@link IndexedRecord}.
      */
@@ -82,6 +86,8 @@ public class ConvertToIndexedRecord<DatumT> extends
                         throw new RuntimeException("Cannot find converter for " + in.getClass());
                     }
                 }
+                LOG.debug("Converter's schema is {}", converter.getSchema());
+                LOG.debug("Process element is {}", in);
                 c.output(converter.convertToAvro(in));
             }
 

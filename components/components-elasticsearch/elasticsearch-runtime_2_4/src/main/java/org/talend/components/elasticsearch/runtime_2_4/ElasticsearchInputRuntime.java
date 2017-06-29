@@ -81,7 +81,7 @@ public class ElasticsearchInputRuntime extends PTransform<PBegin, PCollection<In
         }
         PCollection<String> readFromElasticsearch = in.apply("ReadFromElasticsearch", esRead);
         //TODO(bchen) String data is a json format, convert json to avro is better than string to avro
-        return readFromElasticsearch.apply(ConvertToIndexedRecord.<String, IndexedRecord> of());
+        return readFromElasticsearch.apply(ConvertToIndexedRecord.<String> of());
     }
 
     @Override
