@@ -29,17 +29,19 @@ import static org.apache.beam.sdk.repackaged.com.google.common.base.Precondition
 
 import java.io.IOException;
 import java.net.URI;
+import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.StringUtf8Coder;
-import org.apache.beam.sdk.io.Sink;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.repackaged.com.google.common.collect.Lists;
 import org.apache.beam.sdk.repackaged.com.google.common.collect.Maps;
 import org.apache.beam.sdk.repackaged.com.google.common.collect.Sets;
+import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
+import org.apache.beam.sdk.transforms.windowing.PaneInfo;
 import org.apache.beam.sdk.values.KV;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -110,7 +112,7 @@ public class ConfigurableHDFSFileSink<K, V> extends Sink<KV<K, V>> {
     }
 
     @Override
-    public Sink.WriteOperation<KV<K, V>, ?> createWriteOperation(PipelineOptions options) {
+    public Sink.WriteOperation<KV<K, V>, ?> createWriteOperation() {
         return new HDFSWriteOperation<>(this, path, mergeOutput, formatClass);
     }
 
@@ -153,6 +155,11 @@ public class ConfigurableHDFSFileSink<K, V> extends Sink<KV<K, V>> {
         public void initialize(PipelineOptions options) throws Exception {
             Job job = ((ConfigurableHDFSFileSink<K, V>) getSink()).jobInstance();
             FileOutputFormat.setOutputPath(job, new Path(path));
+        }
+
+        @Override
+        public void setWindowedWrites(boolean windowedWrites) {
+
         }
 
         @Override
@@ -278,8 +285,7 @@ public class ConfigurableHDFSFileSink<K, V> extends Sink<KV<K, V>> {
         protected void configure(Job job) {
         }
 
-        @Override
-        public void open(String uId) throws Exception {
+        public void doOpen(String uId) throws Exception {
             this.hash = uId.hashCode();
 
             Job job = ((ConfigurableHDFSFileSink<K, V>) getWriteOperation().getSink()).jobInstance();
@@ -296,6 +302,22 @@ public class ConfigurableHDFSFileSink<K, V> extends Sink<KV<K, V>> {
             FileOutputFormat<K, V> outputFormat = formatClass.newInstance();
             recordWriter = outputFormat.getRecordWriter(context);
             outputCommitter = (FileOutputCommitter) outputFormat.getOutputCommitter(context);
+        }
+
+        @Override
+        public void openWindowed(String uId, BoundedWindow window, PaneInfo paneInfo, int shard, int numShards) throws Exception {
+            throw new UnsupportedOperationException("Windowing support not implemented yet for"
+                    + "HDFS. Window " + window);
+        }
+
+        @Override
+        public void openUnwindowed(String uId, int shard, int numShards) throws Exception {
+            doOpen(uId);
+        }
+
+        @Override
+        public void cleanup() throws Exception {
+
         }
 
         @Override

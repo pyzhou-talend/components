@@ -18,11 +18,10 @@ import java.util.HashSet;
 
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.testing.RunnableOnService;
+import org.apache.beam.sdk.testing.ValidatesRunner;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,7 +48,7 @@ public class SparkSimpleFileIOOutputRuntimeTestIT {
     /**
      * Basic unit test using all default values (except for the path) on an in-memory DFS cluster.
      */
-    @Category(RunnableOnService.class)
+    @Category(ValidatesRunner.class)
     @Ignore("BEAM-1206")
     @Test
     public void testBasicDefaults() throws IOException {
