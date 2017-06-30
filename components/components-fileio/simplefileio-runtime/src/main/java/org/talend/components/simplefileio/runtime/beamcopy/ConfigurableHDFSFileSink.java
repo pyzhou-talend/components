@@ -158,11 +158,6 @@ public class ConfigurableHDFSFileSink<K, V> extends Sink<KV<K, V>> {
         }
 
         @Override
-        public void setWindowedWrites(boolean windowedWrites) {
-
-        }
-
-        @Override
         public void finalize(Iterable<String> writerResults, PipelineOptions options) throws Exception {
             Job job = ((ConfigurableHDFSFileSink<K, V>) getSink()).jobInstance();
             FileSystem fs = FileSystem.get(new URI(path), job.getConfiguration());
@@ -285,7 +280,8 @@ public class ConfigurableHDFSFileSink<K, V> extends Sink<KV<K, V>> {
         protected void configure(Job job) {
         }
 
-        public void doOpen(String uId) throws Exception {
+        @Override
+        public void open(String uId) throws Exception {
             this.hash = uId.hashCode();
 
             Job job = ((ConfigurableHDFSFileSink<K, V>) getWriteOperation().getSink()).jobInstance();
@@ -302,22 +298,6 @@ public class ConfigurableHDFSFileSink<K, V> extends Sink<KV<K, V>> {
             FileOutputFormat<K, V> outputFormat = formatClass.newInstance();
             recordWriter = outputFormat.getRecordWriter(context);
             outputCommitter = (FileOutputCommitter) outputFormat.getOutputCommitter(context);
-        }
-
-        @Override
-        public void openWindowed(String uId, BoundedWindow window, PaneInfo paneInfo, int shard, int numShards) throws Exception {
-            throw new UnsupportedOperationException("Windowing support not implemented yet for"
-                    + "HDFS. Window " + window);
-        }
-
-        @Override
-        public void openUnwindowed(String uId, int shard, int numShards) throws Exception {
-            doOpen(uId);
-        }
-
-        @Override
-        public void cleanup() throws Exception {
-
         }
 
         @Override

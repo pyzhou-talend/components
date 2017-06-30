@@ -27,8 +27,6 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.annotations.Experimental;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.coders.SerializableCoder;
-import org.apache.beam.sdk.io.Sink.WriteOperation;
-import org.apache.beam.sdk.io.Sink.Writer;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.options.ValueProvider.StaticValueProvider;
@@ -39,6 +37,7 @@ import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.View;
 import org.apache.beam.sdk.transforms.display.DisplayData;
+import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.DefaultTrigger;
 import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -56,7 +55,7 @@ import org.slf4j.LoggerFactory;
  * of the write. The output of a write is {@link PDone}.
  *
  * <p>By default, every bundle in the input {@link PCollection} will be processed by a
- * {@link WriteOperation}, so the number of outputs will vary based on runner behavior, though at
+ * {@link Sink.WriteOperation}, so the number of outputs will vary based on runner behavior, though at
  * least 1 output will always be produced. The exact parallelism of the write stage can be
  * controlled using {@link Write.Bound#withNumShards}, typically used to control how many files are
  * produced or to globally limit the number of workers connecting to an external service. However,
@@ -111,9 +110,9 @@ public class Write {
                     IsBounded.BOUNDED == input.isBounded(),
                     "%s can only be applied to a Bounded PCollection",
                     Write.class.getSimpleName());
-            PipelineOptions options = input.getPipeline().getOptions();
+            PipelineOptions options = null;
             sink.validate(options);
-            return createWrite(input, sink.createWriteOperation(options));
+            return createWrite(input, sink.createWriteOperation());
         }
 
         @Override
@@ -195,27 +194,29 @@ public class Write {
         }
 
         /**
-         * Writes all the elements in a bundle using a {@link Writer} produced by the
-         * {@link WriteOperation} associated with the {@link Sink}.
+         * Writes all the elements in a bundle using a {@link Sink.Writer} produced by the
+         * {@link Sink.WriteOperation} associated with the {@link Sink}.
          */
         private class WriteBundles<WriteT> extends DoFn<T, WriteT> {
             // Writer that will write the records in this bundle. Lazily
             // initialized in processElement.
-            private Writer<T, WriteT> writer = null;
-            private final PCollectionView<WriteOperation<T, WriteT>> writeOperationView;
+            private Sink.Writer<T, WriteT> writer = null;
+            private BoundedWindow window;
+            private final PCollectionView<Sink.WriteOperation<T, WriteT>> writeOperationView;
 
-            WriteBundles(PCollectionView<WriteOperation<T, WriteT>> writeOperationView) {
+            WriteBundles(PCollectionView<Sink.WriteOperation<T, WriteT>> writeOperationView) {
                 this.writeOperationView = writeOperationView;
             }
 
             @ProcessElement
-            public void processElement(ProcessContext c) throws Exception {
+            public void processElement(ProcessContext c, BoundedWindow window) throws Exception {
                 // Lazily initialize the Writer
                 if (writer == null) {
-                    WriteOperation<T, WriteT> writeOperation = c.sideInput(writeOperationView);
+                    Sink.WriteOperation<T, WriteT> writeOperation = c.sideInput(writeOperationView);
                     LOG.info("Opening writer for write operation {}", writeOperation);
                     writer = writeOperation.createWriter(c.getPipelineOptions());
                     writer.open(UUID.randomUUID().toString());
+                    this.window = window;
                     LOG.debug("Done opening writer {} for operation {}", writer, writeOperationView);
                 }
                 try {
@@ -238,12 +239,13 @@ public class Write {
             }
 
             @FinishBundle
-            public void finishBundle(Context c) throws Exception {
+            public void finishBundle(FinishBundleContext c) throws Exception {
                 if (writer != null) {
                     WriteT result = writer.close();
-                    c.output(result);
+                    c.output(result, window.maxTimestamp(), window);
                     // Reset state in case of reuse.
                     writer = null;
+                    window = null;
                 }
             }
 
@@ -260,9 +262,9 @@ public class Write {
          * @see WriteBundles
          */
         private class WriteShardedBundles<WriteT> extends DoFn<KV<Integer, Iterable<T>>, WriteT> {
-            private final PCollectionView<WriteOperation<T, WriteT>> writeOperationView;
+            private final PCollectionView<Sink.WriteOperation<T, WriteT>> writeOperationView;
 
-            WriteShardedBundles(PCollectionView<WriteOperation<T, WriteT>> writeOperationView) {
+            WriteShardedBundles(PCollectionView<Sink.WriteOperation<T, WriteT>> writeOperationView) {
                 this.writeOperationView = writeOperationView;
             }
 
@@ -270,9 +272,9 @@ public class Write {
             public void processElement(ProcessContext c) throws Exception {
                 // In a sharded write, single input element represents one shard. We can open and close
                 // the writer in each call to processElement.
-                WriteOperation<T, WriteT> writeOperation = c.sideInput(writeOperationView);
+                Sink.WriteOperation<T, WriteT> writeOperation = c.sideInput(writeOperationView);
                 LOG.info("Opening writer for write operation {}", writeOperation);
-                Writer<T, WriteT> writer = writeOperation.createWriter(c.getPipelineOptions());
+                Sink.Writer<T, WriteT> writer = writeOperation.createWriter(c.getPipelineOptions());
                 writer.open(UUID.randomUUID().toString());
                 LOG.debug("Done opening writer {} for operation {}", writer, writeOperationView);
 
@@ -337,55 +339,55 @@ public class Write {
          * A write is performed as sequence of three {@link ParDo}'s.
          *
          * <p>In the first, a do-once ParDo is applied to a singleton PCollection containing the Sink's
-         * {@link WriteOperation}. In this initialization ParDo, {@link WriteOperation#initialize} is
+         * {@link Sink.WriteOperation}. In this initialization ParDo, {@link Sink.WriteOperation#initialize} is
          * called. The output of this ParDo is a singleton PCollection
          * containing the WriteOperation.
          *
          * <p>This singleton collection containing the WriteOperation is then used as a side input to a
          * ParDo over the PCollection of elements to write. In this bundle-writing phase,
-         * {@link WriteOperation#createWriter} is called to obtain a {@link Writer}.
-         * {@link Writer#open} and {@link Writer#close} are called in {@link DoFn#startBundle} and
-         * {@link DoFn#finishBundle}, respectively, and {@link Writer#write} method is called for
+         * {@link Sink.WriteOperation#createWriter} is called to obtain a {@link Sink.Writer}.
+         * {@link Sink.Writer#open} and {@link Sink.Writer#close} are called in {@link DoFn#startBundle} and
+         * {@link DoFn#finishBundle}, respectively, and {@link Sink.Writer#write} method is called for
          * every element in the bundle. The output of this ParDo is a PCollection of
          * <i>writer result</i> objects (see {@link Sink} for a description of writer results)-one for
          * each bundle.
          *
          * <p>The final do-once ParDo uses the singleton collection of the WriteOperation as input and
          * the collection of writer results as a side-input. In this ParDo,
-         * {@link WriteOperation#finalize} is called to finalize the write.
+         * {@link Sink.WriteOperation#finalize} is called to finalize the write.
          *
-         * <p>If the write of any element in the PCollection fails, {@link Writer#close} will be called
+         * <p>If the write of any element in the PCollection fails, {@link Sink.Writer#close} will be called
          * before the exception that caused the write to fail is propagated and the write result will be
          * discarded.
          *
-         * <p>Since the {@link WriteOperation} is serialized after the initialization ParDo and
+         * <p>Since the {@link Sink.WriteOperation} is serialized after the initialization ParDo and
          * deserialized in the bundle-writing and finalization phases, any state change to the
          * WriteOperation object that occurs during initialization is visible in the latter phases.
          * However, the WriteOperation is not serialized after the bundle-writing phase.  This is why
-         * implementations should guarantee that {@link WriteOperation#createWriter} does not mutate
+         * implementations should guarantee that {@link Sink.WriteOperation#createWriter} does not mutate
          * WriteOperation).
          */
         private <WriteT> PDone createWrite(
-                PCollection<T> input, WriteOperation<T, WriteT> writeOperation) {
+                PCollection<T> input, Sink.WriteOperation<T, WriteT> writeOperation) {
             Pipeline p = input.getPipeline();
 
             // A coder to use for the WriteOperation.
             @SuppressWarnings("unchecked")
-            Coder<WriteOperation<T, WriteT>> operationCoder =
-                    (Coder<WriteOperation<T, WriteT>>) SerializableCoder.of(writeOperation.getClass());
+            Coder<Sink.WriteOperation<T, WriteT>> operationCoder =
+                    (Coder<Sink.WriteOperation<T, WriteT>>) SerializableCoder.of(writeOperation.getClass());
 
             // A singleton collection of the WriteOperation, to be used as input to a ParDo to initialize
             // the sink.
-            PCollection<WriteOperation<T, WriteT>> operationCollection =
+            PCollection<Sink.WriteOperation<T, WriteT>> operationCollection =
                     p.apply(Create.of(writeOperation).withCoder(operationCoder));
 
             // Initialize the resource in a do-once ParDo on the WriteOperation.
             operationCollection = operationCollection
                     .apply("Initialize", ParDo.of(
-                            new DoFn<WriteOperation<T, WriteT>, WriteOperation<T, WriteT>>() {
+                            new DoFn<Sink.WriteOperation<T, WriteT>, Sink.WriteOperation<T, WriteT>>() {
                                 @ProcessElement
                                 public void processElement(ProcessContext c) throws Exception {
-                                    WriteOperation<T, WriteT> writeOperation = c.element();
+                                    Sink.WriteOperation<T, WriteT> writeOperation = c.element();
                                     LOG.info("Initializing write operation {}", writeOperation);
                                     writeOperation.initialize(c.getPipelineOptions());
                                     LOG.debug("Done initializing write operation {}", writeOperation);
@@ -397,8 +399,8 @@ public class Write {
                     .setCoder(operationCoder);
 
             // Create a view of the WriteOperation to be used as a sideInput to the parallel write phase.
-            final PCollectionView<WriteOperation<T, WriteT>> writeOperationView =
-                    operationCollection.apply(View.<WriteOperation<T, WriteT>>asSingleton());
+            final PCollectionView<Sink.WriteOperation<T, WriteT>> writeOperationView =
+                    operationCollection.apply(View.<Sink.WriteOperation<T, WriteT>>asSingleton());
 
             // Re-window the data into the global window and remove any existing triggers.
             PCollection<T> inputInGlobalWindow =
@@ -449,10 +451,10 @@ public class Write {
                 sideInputs.add(numShards);
             }
             operationCollection
-                    .apply("Finalize", ParDo.of(new DoFn<WriteOperation<T, WriteT>, Integer>() {
+                    .apply("Finalize", ParDo.of(new DoFn<Sink.WriteOperation<T, WriteT>, Integer>() {
                         @ProcessElement
                         public void processElement(ProcessContext c) throws Exception {
-                            WriteOperation<T, WriteT> writeOperation = c.element();
+                            Sink.WriteOperation<T, WriteT> writeOperation = c.element();
                             LOG.info("Finalizing write operation {}.", writeOperation);
                             List<WriteT> results = Lists.newArrayList(c.sideInput(resultsView));
                             LOG.debug("Side input initialized to finalize write operation {}.", writeOperation);
@@ -475,7 +477,7 @@ public class Write {
                                         "Creating {} empty output shards in addition to {} written for a total of {}.",
                                         extraShardsNeeded, results.size(), minShardsNeeded);
                                 for (int i = 0; i < extraShardsNeeded; ++i) {
-                                    Writer<T, WriteT> writer = writeOperation.createWriter(c.getPipelineOptions());
+                                    Sink.Writer<T, WriteT> writer = writeOperation.createWriter(c.getPipelineOptions());
                                     writer.open(UUID.randomUUID().toString());
                                     WriteT emptyWrite = writer.close();
                                     results.add(emptyWrite);

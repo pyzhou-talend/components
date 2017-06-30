@@ -37,12 +37,12 @@ public class ConfigureWithSampleHDFSWriter<K, V> extends ConfigurableHDFSFileSin
     }
 
     @Override
-    public void openUnwindowed(String uId, int shard, int numShards) throws Exception {
+    public void open(String uId) throws Exception {
         this.uId = uId;
     }
 
     protected void superOpen(String uId) throws Exception {
-        super.doOpen(uId);
+        super.open(uId);
     }
 
     @Override
