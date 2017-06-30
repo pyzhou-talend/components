@@ -21,7 +21,7 @@ public class ExtensibleUrlClassLoaderTest {
         ExtensibleUrlClassLoader urlClassLoader = new ExtensibleUrlClassLoader(new URL[0]);
         // 2 comp installer
         assertThat(ServiceLoader.load(ComponentInstaller.class, urlClassLoader),
-                IsIterableWithSize.<ComponentInstaller> iterableWithSize(2));
+                IsIterableWithSize.<ComponentInstaller> iterableWithSize(1));
 
         // when
         urlClassLoader.addURL(new URL("mvn:org.talend.components/multiple-runtime-comp/0.18.0"));
@@ -29,7 +29,7 @@ public class ExtensibleUrlClassLoaderTest {
         // then
         // 3 comp installer
         assertThat(ServiceLoader.load(ComponentInstaller.class, urlClassLoader),
-                IsIterableWithSize.<ComponentInstaller> iterableWithSize(3));
+                IsIterableWithSize.<ComponentInstaller> iterableWithSize(2));
 
     }
 
