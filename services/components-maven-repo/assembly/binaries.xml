@@ -9,7 +9,7 @@
     <fileSets>
         <!-- hadoop winutils binaries -->
         <fileSet>
-            <directory>${project.build.directory}/binaries</directory>
+            <directory>${project.build.directory}${file.separator}binaries</directory>
             <outputDirectory>${file.separator}</outputDirectory>
             <includes>
                 <include>**/*</include>
