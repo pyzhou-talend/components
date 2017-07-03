@@ -24,7 +24,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<hadoop.version>2.7.0</hadoop.version>
-		<beam.version>0.6.0-tlnd</beam.version>
+		<beam.version>2.0.0</beam.version>
 		<!-- Used for Docker images name -->
 		<git_branch>local</git_branch>
 		<docker_tag_suffix>${maven.build.timestamp}</docker_tag_suffix>
