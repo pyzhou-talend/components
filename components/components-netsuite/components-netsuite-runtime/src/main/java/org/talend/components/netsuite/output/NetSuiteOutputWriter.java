@@ -50,7 +50,7 @@ import org.talend.components.netsuite.client.model.TypeDesc;
  * @param <T> type of NetSuite objects that are passed to {@link NetSuiteClientService}
  * @param <RefT> type of NetSuite reference objects
  */
-public abstract class NetSuiteOutputWriter<T, RefT> implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
+public abstract class NetSuiteOutputWriter<T, RefT> implements WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> {
 
     protected transient final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -178,8 +178,7 @@ public abstract class NetSuiteOutputWriter<T, RefT> implements WriterWithFeedbac
     }
 
     @Override
-    public void write(Object object) throws IOException {
-        IndexedRecord record = (IndexedRecord) object;
+    public void write(IndexedRecord record) throws IOException {
 
         inputRecordList.add(record);
 

@@ -16,6 +16,7 @@ package org.talend.components.netsuite.output;
 import java.util.Map;
 
 import org.apache.avro.Schema;
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.Writer;
@@ -52,7 +53,7 @@ public class NetSuiteWriteOperation implements WriteOperation<Result> {
     }
 
     @Override
-    public Writer<Result> createWriter(RuntimeContainer adaptor) {
+    public Writer<IndexedRecord, Result> createWriter(RuntimeContainer adaptor) {
         NetSuiteClientService clientService = sink.getClientService();
 
         OutputAction action = properties.module.action.getValue();

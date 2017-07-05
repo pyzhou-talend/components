@@ -56,8 +56,6 @@ public class NetSuiteSearchInputReader extends AbstractBoundedReader<IndexedReco
     /** Number of retrieved records. */
     private int dataCount;
 
-    private RuntimeContainer container;
-
     /** Search result set. */
     private ResultSet<?> resultSet;
 
@@ -71,7 +69,6 @@ public class NetSuiteSearchInputReader extends AbstractBoundedReader<IndexedReco
             NetSuiteSource source, NetSuiteInputProperties properties) {
         super(source);
 
-        this.container = container;
         this.properties = properties;
     }
 
