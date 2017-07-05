@@ -39,7 +39,6 @@ import org.talend.components.salesforce.SalesforceOutputProperties;
 import org.talend.components.salesforce.tsalesforceoutput.TSalesforceOutputProperties;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.avro.SchemaConstants;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.daikon.exception.error.DefaultErrorCode;
 
@@ -56,7 +55,7 @@ import com.sforce.ws.bind.XmlObject;
 import com.sforce.ws.types.Time;
 import com.sforce.ws.util.Base64;
 
-final class SalesforceWriter implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
+final class SalesforceWriter implements WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> {
 
     private final SalesforceWriteOperation salesforceWriteOperation;
 
@@ -91,8 +90,6 @@ final class SalesforceWriter implements WriterWithFeedback<Result, IndexedRecord
     private int rejectCount;
 
     private int deleteFieldId = -1;
-
-    private transient IndexedRecordConverter<Object, ? extends IndexedRecord> factory;
 
     private transient Schema moduleSchema;
 
@@ -147,34 +144,26 @@ final class SalesforceWriter implements WriterWithFeedback<Result, IndexedRecord
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void write(Object datum) throws IOException {
+    public void write(IndexedRecord record) throws IOException {
         dataCount++;
         // Ignore empty rows.
-        if (null == datum) {
+        if (null == record) {
             return;
         }
 
-        // This is all we need to do in order to ensure that we can process the incoming value as an IndexedRecord.
-        if (null == factory) {
-            factory = (IndexedRecordConverter<Object, ? extends IndexedRecord>) SalesforceAvroRegistry.get()
-                    .createIndexedRecordConverter(datum.getClass());
-        }
-        IndexedRecord input = factory.convertToAvro(datum);
-
         switch (sprops.outputAction.getValue()) {
         case INSERT:
-            insert(input);
+            insert(record);
             break;
         case UPDATE:
-            update(input);
+            update(record);
             break;
         case UPSERT:
-            upsert(input);
+            upsert(record);
             break;
         case DELETE:
-            delete(input);
+            delete(record);
         }
     }
 

@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.api.component.runtime.Result;
@@ -51,7 +52,7 @@ public class SalesforceBulkFileWriteOperationTest {
 
         sink.initialize(null, properties);
 
-        Writer<Result> writer = writeOperation.createWriter(null);
+        Writer<IndexedRecord, Result> writer = writeOperation.createWriter(null);
         assertEquals(writeOperation, writer.getWriteOperation());
     }
 }

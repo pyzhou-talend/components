@@ -21,7 +21,6 @@ import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.salesforce.SalesforceConnectionModuleProperties;
-import org.talend.components.salesforce.SalesforceConnectionProperties;
 import org.talend.components.salesforce.tsalesforcebulkexec.TSalesforceBulkExecProperties;
 import org.talend.components.salesforce.tsalesforceinput.TSalesforceInputProperties;
 import org.talend.daikon.avro.AvroUtils;
@@ -29,7 +28,7 @@ import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 import com.sforce.soap.partner.PartnerConnection;
 
-public abstract class SalesforceReader<T> extends AbstractBoundedReader<T> {
+public abstract class SalesforceReader extends AbstractBoundedReader<IndexedRecord> {
 
     private transient PartnerConnection connection;
 

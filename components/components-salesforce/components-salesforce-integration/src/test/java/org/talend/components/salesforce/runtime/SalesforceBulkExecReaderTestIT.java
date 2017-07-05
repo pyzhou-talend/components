@@ -127,7 +127,7 @@ public class SalesforceBulkExecReaderTestIT extends SalesforceTestBase {
                 definition.getClass().getClassLoader())) {
             SalesforceSource boundedSource = (SalesforceSource) sandboxedInstance.getInstance();
             boundedSource.initialize(null, bulkExecProperties);
-            BoundedReader boundedReader = boundedSource.createReader(null);
+            BoundedReader<IndexedRecord> boundedReader = boundedSource.createReader(null);
 
             try {
                 boolean hasRecord = boundedReader.start();
@@ -153,7 +153,7 @@ public class SalesforceBulkExecReaderTestIT extends SalesforceTestBase {
         bfSink.initialize(null, outputBulkProperties);
 
         SalesforceBulkFileWriteOperation writeOperation = (SalesforceBulkFileWriteOperation) bfSink.createWriteOperation();
-        Writer<Result> saleforceWriter = writeOperation.createWriter(null);
+        Writer<IndexedRecord, Result> saleforceWriter = writeOperation.createWriter(null);
 
         Result result = writeRows(saleforceWriter, rows);
         Map<String, Object> resultMap = getConsolidatedResults(result, saleforceWriter);

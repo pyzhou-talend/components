@@ -17,8 +17,6 @@ import java.util.NoSuchElementException;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.salesforce.soql.SoqlQuery;
@@ -28,9 +26,7 @@ import org.talend.daikon.avro.AvroUtils;
 import com.sforce.async.AsyncApiException;
 import com.sforce.ws.ConnectionException;
 
-public class SalesforceBulkQueryInputReader extends SalesforceReader<IndexedRecord> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SalesforceBulkQueryInputReader.class);
+public class SalesforceBulkQueryInputReader extends SalesforceReader {
 
     protected SalesforceBulkRuntime bulkRuntime;
 

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.api.component.ComponentDefinition;
@@ -64,7 +65,7 @@ public class SalesforceWriteOperationTest {
 
         sink.initialize(null, properties);
 
-        Writer<Result> writer = writeOperation.createWriter(null);
+        Writer<IndexedRecord, Result> writer = writeOperation.createWriter(null);
         assertEquals(writeOperation, writer.getWriteOperation());
     }
 

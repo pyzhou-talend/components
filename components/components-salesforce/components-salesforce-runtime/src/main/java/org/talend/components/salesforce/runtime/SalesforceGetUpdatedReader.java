@@ -41,7 +41,6 @@ public class SalesforceGetUpdatedReader extends SalesforceGetDeletedUpdatedReade
 
     @Override
     protected GetUpdatedResult getResult() throws IOException, ConnectionException {
-        SalesforceGetDeletedUpdatedProperties props = (SalesforceGetDeletedUpdatedProperties) properties;
         return getConnection().getUpdated(module, startDate, endDate);
     }
 

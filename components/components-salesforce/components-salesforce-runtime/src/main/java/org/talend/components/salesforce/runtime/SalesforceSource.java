@@ -15,8 +15,7 @@ package org.talend.components.salesforce.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.container.RuntimeContainer;
@@ -27,8 +26,6 @@ import org.talend.components.salesforce.tsalesforcegetupdated.TSalesforceGetUpda
 import org.talend.components.salesforce.tsalesforceinput.TSalesforceInputProperties;
 
 public class SalesforceSource extends SalesforceSourceOrSink implements BoundedSource {
-
-    private static final Logger LOG = LoggerFactory.getLogger(SalesforceSource.class);
 
     public SalesforceSource() {
     }
@@ -52,7 +49,7 @@ public class SalesforceSource extends SalesforceSourceOrSink implements BoundedS
     }
 
     @Override
-    public BoundedReader createReader(RuntimeContainer adaptor) {
+    public BoundedReader<IndexedRecord> createReader(RuntimeContainer adaptor) {
         if (properties instanceof TSalesforceInputProperties) {
             TSalesforceInputProperties sfInProperties = (TSalesforceInputProperties) properties;
             boolean isBulk = TSalesforceInputProperties.QueryMode.Bulk.equals(sfInProperties.queryMode.getValue());

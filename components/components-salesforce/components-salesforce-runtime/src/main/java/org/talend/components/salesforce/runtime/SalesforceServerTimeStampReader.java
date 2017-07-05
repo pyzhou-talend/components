@@ -17,17 +17,25 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.salesforce.tsalesforcegetservertimestamp.TSalesforceGetServerTimestampProperties;
+import org.talend.daikon.avro.AvroUtils;
 
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
 
-public class SalesforceServerTimeStampReader extends AbstractBoundedReader<Long> {
+public class SalesforceServerTimeStampReader extends AbstractBoundedReader<IndexedRecord> {
+    
+    private static final Schema RUNTIME_SCHEMA = SchemaBuilder.record("Main").fields().name("ServerTimeStamp")
+            .type(AvroUtils._logicalTimestamp()).noDefault().endRecord();
 
-    private transient Long result;
+    private transient IndexedRecord result;
 
     protected int dataCount;
 
@@ -45,7 +53,9 @@ public class SalesforceServerTimeStampReader extends AbstractBoundedReader<Long>
         try {
             Calendar serverTimestamp = connection.getServerTimestamp().getTimestamp();
             if (serverTimestamp != null) {
-                result = serverTimestamp.getTimeInMillis();
+                long timestamp = serverTimestamp.getTimeInMillis();
+                result = new GenericData.Record(RUNTIME_SCHEMA);
+                result.put(0, timestamp);
             }
             if (result != null) {
                 dataCount++;
@@ -64,7 +74,7 @@ public class SalesforceServerTimeStampReader extends AbstractBoundedReader<Long>
     }
 
     @Override
-    public Long getCurrent() throws NoSuchElementException {
+    public IndexedRecord getCurrent() throws NoSuchElementException {
         return result;
     }
 

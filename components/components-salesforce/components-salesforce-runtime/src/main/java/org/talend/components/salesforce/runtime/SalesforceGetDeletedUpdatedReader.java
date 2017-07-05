@@ -26,7 +26,7 @@ import com.sforce.soap.partner.QueryResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 
-public abstract class SalesforceGetDeletedUpdatedReader<ResultT> extends SalesforceReader<IndexedRecord> {
+public abstract class SalesforceGetDeletedUpdatedReader<ResultT> extends SalesforceReader {
 
     protected String module;
 

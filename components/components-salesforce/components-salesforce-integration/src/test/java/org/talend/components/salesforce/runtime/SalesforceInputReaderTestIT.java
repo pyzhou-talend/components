@@ -65,7 +65,7 @@ public class SalesforceInputReaderTestIT extends SalesforceTestBase {
 
     @Test
     public void testStartAdvanceGetCurrent() throws IOException {
-        BoundedReader salesforceInputReader = createSalesforceInputReaderFromModule(EXISTING_MODULE_NAME);
+        BoundedReader<IndexedRecord> salesforceInputReader = createSalesforceInputReaderFromModule(EXISTING_MODULE_NAME);
         try {
             assertTrue(salesforceInputReader.start());
             assertTrue(salesforceInputReader.advance());
@@ -140,8 +140,7 @@ public class SalesforceInputReaderTestIT extends SalesforceTestBase {
         try {
             TSalesforceInputProperties properties = createTSalesforceInputProperties(false, true);
             properties.manualQuery.setValue(false);
-            SalesforceBulkQueryInputReader reader = (SalesforceBulkQueryInputReader) this
-                    .<IndexedRecord> createBoundedReader(properties);
+            SalesforceBulkQueryInputReader reader = (SalesforceBulkQueryInputReader) createBoundedReader(properties);
             reader.start();
             reader.close();
             // Job could be closed on Salesforce side and previously we tried to close it again, we shouldn't do that.
@@ -535,7 +534,7 @@ public class SalesforceInputReaderTestIT extends SalesforceTestBase {
         inputProps.manualQuery.setValue(true);
         inputProps.query.setValue(soql);
         List<IndexedRecord> inputRows = readRows(inputProps);
-        SalesforceReader<IndexedRecord> reader = (SalesforceReader) createBoundedReader(inputProps);
+        SalesforceReader reader = (SalesforceReader) createBoundedReader(inputProps);
         boolean hasRecord = reader.start();
         List<IndexedRecord> rows = new ArrayList<>();
         while (hasRecord) {

@@ -27,7 +27,7 @@ import org.talend.components.salesforce.tsalesforceoutputbulk.TSalesforceOutputB
 /**
  * Prepare Data Files for bulk execution
  */
-final class SalesforceBulkFileWriter extends BulkFileWriter {
+final class SalesforceBulkFileWriter extends BulkFileWriter<IndexedRecord> {
 
     public SalesforceBulkFileWriter(WriteOperation<Result> writeOperation, BulkFileProperties bulkProperties,
             RuntimeContainer adaptor) {
@@ -92,18 +92,17 @@ final class SalesforceBulkFileWriter extends BulkFileWriter {
     }
 
     @Override
-    public List<String> getValues(Object datum) {
-        IndexedRecord input = getFactory(datum).convertToAvro((IndexedRecord) datum);
+    public List<String> getValues(IndexedRecord record) {
         List<String> values = new ArrayList<String>();
-        for (Schema.Field f : input.getSchema().getFields()) {
-            if (input.get(f.pos()) == null) {
+        for (Schema.Field f : record.getSchema().getFields()) {
+            if (record.get(f.pos()) == null) {
                 if (((TSalesforceOutputBulkProperties) bulkProperties).ignoreNull.getValue()) {
                     values.add("");
                 } else {
                     values.add("#N/A");
                 }
             } else {
-                values.add(String.valueOf(input.get(f.pos())));
+                values.add(String.valueOf(record.get(f.pos())));
             }
         }
         return values;

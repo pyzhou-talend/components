@@ -126,11 +126,11 @@ public class SalesforceWriterTestIT extends SalesforceTestBase {
             .name("Id").type().stringType().noDefault() //
             .endRecord();
 
-    public Writer<Result> createSalesforceOutputWriter(TSalesforceOutputProperties props) {
+    public Writer<IndexedRecord, Result> createSalesforceOutputWriter(TSalesforceOutputProperties props) {
         SalesforceSink salesforceSink = new SalesforceSink();
         salesforceSink.initialize(adaptor, props);
         SalesforceWriteOperation writeOperation = salesforceSink.createWriteOperation();
-        Writer<Result> saleforceWriter = writeOperation.createWriter(adaptor);
+        Writer<IndexedRecord, Result> saleforceWriter = writeOperation.createWriter(adaptor);
         return saleforceWriter;
     }
 
@@ -195,7 +195,7 @@ public class SalesforceWriterTestIT extends SalesforceTestBase {
             SalesforceWriteOperation sfWriteOp = sfSink.createWriteOperation();
             sfWriteOp.initialize(container);
 
-            Writer<Result> sfWriter = sfSink.createWriteOperation().createWriter(container);
+            Writer<IndexedRecord, Result> sfWriter = sfSink.createWriteOperation().createWriter(container);
             sfWriter.open("uid1");
 
             // Write one record.
@@ -228,7 +228,7 @@ public class SalesforceWriterTestIT extends SalesforceTestBase {
         // insert
         props.outputAction.setValue(TSalesforceOutputProperties.OutputAction.INSERT);
         props.afterOutputAction();
-        Writer<Result> saleforceWriter = createSalesforceOutputWriter(props);
+        Writer<IndexedRecord, Result> saleforceWriter = createSalesforceOutputWriter(props);
         Result writeResult = writeRows(saleforceWriter, Collections.EMPTY_LIST);
         resultMap = getConsolidatedResults(writeResult, saleforceWriter);
         assertEquals(0, resultMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
@@ -297,7 +297,7 @@ public class SalesforceWriterTestIT extends SalesforceTestBase {
         SalesforceSink salesforceSink = new SalesforceSink();
         salesforceSink.initialize(adaptor, sfLookupProps);
         salesforceSink.validate(adaptor);
-        Writer<Result> batchWriter = salesforceSink.createWriteOperation().createWriter(adaptor);
+        Writer<IndexedRecord, Result> batchWriter = salesforceSink.createWriteOperation().createWriter(adaptor);
         writeRows(batchWriter, records);
 
         List<IndexedRecord> successRecords = ((SalesforceWriter) batchWriter).getSuccessfulWrites();
@@ -363,7 +363,7 @@ public class SalesforceWriterTestIT extends SalesforceTestBase {
 
         props.outputAction.setValue(TSalesforceOutputProperties.OutputAction.INSERT);
 
-        Writer<Result> saleforceWriter = createSalesforceOutputWriter(props);
+        Writer<IndexedRecord, Result> saleforceWriter = createSalesforceOutputWriter(props);
 
         String random = createNewRandom();
         List<IndexedRecord> outputRows = makeRows(random, 10, isDynamic);
@@ -1028,7 +1028,7 @@ public class SalesforceWriterTestIT extends SalesforceTestBase {
         SalesforceSink salesforceSink = new SalesforceSink();
         salesforceSink.initialize(adaptor, sfProps);
         salesforceSink.validate(adaptor);
-        Writer<Result> batchWriter = salesforceSink.createWriteOperation().createWriter(adaptor);
+        Writer<IndexedRecord, Result> batchWriter = salesforceSink.createWriteOperation().createWriter(adaptor);
         writeRows(batchWriter, records);
 
         assertEquals(2, ((SalesforceWriter) batchWriter).getSuccessfulWrites().size());
@@ -1209,7 +1209,7 @@ public class SalesforceWriterTestIT extends SalesforceTestBase {
         SalesforceSink salesforceSink = new SalesforceSink();
         salesforceSink.initialize(adaptor, sfProps);
         salesforceSink.validate(adaptor);
-        Writer<Result> batchWriter = salesforceSink.createWriteOperation().createWriter(adaptor);
+        Writer<IndexedRecord, Result> batchWriter = salesforceSink.createWriteOperation().createWriter(adaptor);
 
         LOGGER.debug("Uploading 2 attachments ...");
         writeRows(batchWriter, records);
