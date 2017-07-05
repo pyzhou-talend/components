@@ -38,6 +38,7 @@ public class FileInputProperties extends FixedConnectorsComponentProperties {
 
     public Property filename = PropertyFactory.newString("filename"); //$NON-NLS-1$
     public SchemaProperties schema = new SchemaProperties("schema"); //$NON-NLS-1$
+    public Property<Boolean> useFilterExpression = PropertyFactory.newBoolean("useFilterExpression");
     protected transient PropertyPathConnector mainConnector = new PropertyPathConnector(Connector.MAIN_NAME, "schema");
  
     public FileInputProperties(String name) {
@@ -47,15 +48,18 @@ public class FileInputProperties extends FixedConnectorsComponentProperties {
     @Override
     public void setupProperties() {
         super.setupProperties();
+        useFilterExpression.setValue(false);
         // Code for property initialization goes here
     }
 
     @Override
     public void setupLayout() {
         super.setupLayout();
+        
         Form form = Form.create(this, Form.MAIN);
         form.addRow(schema.getForm(Form.REFERENCE));
         form.addRow(filename);
+        form.addRow(useFilterExpression);
     }
 
     @Override

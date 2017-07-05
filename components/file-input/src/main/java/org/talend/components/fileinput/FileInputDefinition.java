@@ -2,6 +2,7 @@
 package org.talend.components.fileinput;
 
 import java.io.InputStream;
+import java.util.EnumSet;
 import java.util.Set;
 
 import org.talend.components.api.Constants;
@@ -9,7 +10,10 @@ import org.talend.components.api.component.AbstractComponentDefinition;
 import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.ComponentImageType;
 import org.talend.components.api.component.ConnectorTopology;
+import org.talend.components.api.component.runtime.DependenciesReader;
 import org.talend.components.api.component.runtime.ExecutionEngine;
+import org.talend.components.api.component.runtime.RuntimableRuntime;
+import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
 import org.talend.components.api.component.runtime.Source;
 import org.talend.components.api.properties.ComponentProperties;
 
@@ -24,9 +28,13 @@ import aQute.bnd.annotation.component.Component;
  * components (at run-time).
  */
 @Component(name = Constants.COMPONENT_INSTALLER_PREFIX + FileInputDefinition.COMPONENT_NAME, provide = ComponentDefinition.class)
-public class FileInputDefinition extends AbstractComponentDefinition implements ComponentDefinition {
+public class FileInputDefinition extends AbstractComponentDefinition{
 
     public static final String COMPONENT_NAME = "FileInput"; //$NON-NLS-1$
+    
+    private static final String MAVEN_ARTIFACT_ID = "components-fileinput";
+
+    private static final String MAVEN_GROUP_ID = "org.talend.fileinput";
 
     public FileInputDefinition() {
         super(COMPONENT_NAME,true);
@@ -60,16 +68,44 @@ public class FileInputDefinition extends AbstractComponentDefinition implements 
     public Class<? extends ComponentProperties> getPropertyClass() {
         return FileInputProperties.class;
     }
+    
+    
 
 	@Override
 	public RuntimeInfo getRuntimeInfo(ExecutionEngine arg0, ComponentProperties arg1, ConnectorTopology arg2) {
-		// TODO Auto-generated method stub
-		return null;
+		return getCommonRuntimeInfo(this.getClass().getClassLoader(), FileInputSource.class);
 	}
 
 	@Override
 	public Set<ConnectorTopology> getSupportedConnectorTopologies() {
-		// TODO Auto-generated method stub
-		return null;
+		return EnumSet.of(ConnectorTopology.OUTGOING);
 	}
+	
+    @Override
+    public boolean isSchemaAutoPropagate() {
+        return true;
+    }
+    
+    /**
+     * getCommonRuntimeInfo.
+     *
+     * @param classLoader {@link ClassLoader} class loader
+     * @param clazz {@link SourceOrSink} clazz
+     * @return {@link RuntimeInfo} runtime info
+     */
+    public static RuntimeInfo getCommonRuntimeInfo(ClassLoader classLoader, Class<? extends RuntimableRuntime<?>> clazz) {
+        return new SimpleRuntimeInfo(classLoader,
+                DependenciesReader.computeDependenciesFilePath(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID), clazz.getCanonicalName());
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public Class<? extends ComponentProperties>[] getNestedCompatibleComponentPropertiesClass() {
+        return new Class[]{FileInputProperties.class};
+    }
+    
+    @Override
+    public boolean isStartable() {
+        return true;
+    }
 }
