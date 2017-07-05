@@ -41,10 +41,11 @@ public class FileInputSource implements BoundedSource {
     
     private transient Schema schema;
 
-    public void initialize(RuntimeContainer container, ComponentProperties properties) {
+    public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
         this.properties = (FileInputProperties) properties;
         // FIXME - this should be moved to the properties setup
         schema = new Schema.Parser().parse(this.properties.schema.schema.getStringValue()); 
+        return ValidationResult.OK;
     }
 
     public BoundedReader createReader(RuntimeContainer container) {
@@ -55,16 +56,12 @@ public class FileInputSource implements BoundedSource {
         // Check that the file exists.
         File f = new File(this.properties.filename.getStringValue());
         if (!f.exists()) {
-            ValidationResult vr = new ValidationResult();
-            vr.setMessage("The file '" + f.getPath() + "' does not exist."); //$NON-NLS-1$//$NON-NLS-2$
-            vr.setStatus(ValidationResult.Result.ERROR);
+            ValidationResult vr = new ValidationResult(ValidationResult.Result.ERROR,"The file '" + f.getPath() + "' does not exist.");
             return vr;
         }
         // Check that there is exactly one column to contain the output.
         if (schema.getFields().size() != 1) {
-            ValidationResult vr = new ValidationResult();
-            vr.setMessage("The schema must have exactly one column."); //$NON-NLS-1$
-            vr.setStatus(ValidationResult.Result.ERROR);
+            ValidationResult vr = new ValidationResult(ValidationResult.Result.ERROR,"The schema must have exactly one column.");
             return vr;
         }
         
