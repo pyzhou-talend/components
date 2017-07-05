@@ -19,7 +19,9 @@ import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.BoundedReader;
+import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.azurestorage.AzureStorageBaseTestIT;
@@ -86,15 +88,14 @@ public abstract class AzureStorageTableBaseTestIT extends AzureStorageBaseTestIT
 
     }
 
-    public Writer<?> createWriter(ComponentProperties properties) {
+    public Writer<IndexedRecord, Result> createWriter(ComponentProperties properties) {
         sink.initialize(null, properties);
         sink.validate(null);
         return sink.createWriteOperation().createWriter(null);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> BoundedReader<T> createBoundedReader(ComponentProperties props) {
+    public BoundedReader<IndexedRecord> createBoundedReader(ComponentProperties props) {
         AzureStorageTableSource source = new AzureStorageTableSource();
         source.initialize(null, props);
         source.validate(null);

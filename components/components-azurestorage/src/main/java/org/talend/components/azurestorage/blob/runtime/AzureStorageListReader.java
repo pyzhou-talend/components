@@ -39,7 +39,7 @@ import com.microsoft.azure.storage.blob.CloudBlob;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
-public class AzureStorageListReader extends AzureStorageReader<IndexedRecord> {
+public class AzureStorageListReader extends AzureStorageReader {
 
     private TAzureStorageListProperties properties;
 

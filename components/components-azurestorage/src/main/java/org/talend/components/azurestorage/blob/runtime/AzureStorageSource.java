@@ -16,15 +16,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.azurestorage.blob.AzureStorageBlobProperties;
 import org.talend.components.azurestorage.blob.helpers.RemoteBlob;
-import org.talend.components.azurestorage.blob.helpers.RemoteBlobGet;
 import org.talend.components.azurestorage.blob.tazurestoragecontainerlist.TAzureStorageContainerListProperties;
-import org.talend.components.azurestorage.blob.tazurestorageget.TAzureStorageGetProperties;
 import org.talend.components.azurestorage.blob.tazurestoragelist.TAzureStorageListProperties;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.ValidationResult.Result;
@@ -58,8 +57,7 @@ public class AzureStorageSource extends AzureStorageSourceOrSink implements Boun
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public BoundedReader createReader(RuntimeContainer container) {
+    public BoundedReader<IndexedRecord> createReader(RuntimeContainer container) {
         //
         // Container operations
         //

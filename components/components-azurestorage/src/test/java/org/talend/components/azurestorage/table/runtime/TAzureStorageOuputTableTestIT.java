@@ -37,6 +37,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.components.api.component.runtime.BoundedReader;
+import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.azurestorage.AzureStorageProvideConnectionProperties;
@@ -170,7 +171,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
     public void testProperties() {
         assertTrue(properties.dieOnError.getValue());
         assertFalse(properties.processOperationInBatch.getValue());
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         assertEquals(((AzureStorageTableSink) writer.getWriteOperation().getSink()).getProperties(), properties);
         assertEquals(writer.getWriteOperation().getSink().validate(null), ValidationResult.OK);
     }
@@ -225,7 +226,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getDeleteSchema());
         properties.actionOnData.setValue(ActionOnData.Delete);
         properties.schemaListener.afterSchema();
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String p : partitions) {
             for (String r : rows_all) {
@@ -244,7 +245,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.actionOnData.setValue(ActionOnData.Insert);
         properties.schemaListener.afterSchema();
         properties.tableName.setValue(table);
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String p : partitions) {
             for (String r : rows) {
@@ -270,7 +271,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getDynamicSchema());
         properties.actionOnTable.setValue(ActionOnTable.Drop_and_create_table);
         properties.tableName.setValue(tblDrop);
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         // table shouldn't exist
         writer.open("test-uid");
         writer.close();
@@ -284,7 +285,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getDynamicSchema());
         properties.actionOnTable.setValue(ActionOnTable.Create_table);
         properties.tableName.setValue(tblDrop);
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         // table shouldn't exist
         writer.open("test-uid");
         writer.close();
@@ -367,7 +368,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getSimpleTestSchema());
         properties.actionOnData.setValue(ActionOnData.Insert_Or_Replace);
         properties.schemaListener.afterSchema();
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         IndexedRecord entity;
         for (String p : partitions) {
@@ -417,7 +418,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getSimpleTestSchema());
         properties.actionOnData.setValue(ActionOnData.Insert_Or_Replace);
         properties.schemaListener.afterSchema();
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         IndexedRecord entity;
         for (String p : partitions) {
@@ -456,7 +457,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getWriteSchema());
         properties.actionOnData.setValue(ActionOnData.Insert_Or_Merge);
         properties.schemaListener.afterSchema();
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         IndexedRecord entity;
         for (String p : partitions) {
@@ -523,7 +524,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getMergeSchema());
         properties.actionOnData.setValue(ActionOnData.Merge);
         properties.schemaListener.afterSchema();
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String p : partitions) {
             for (String r : rows) {
@@ -566,7 +567,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.schema.schema.setValue(getSimpleTestSchema());
         properties.actionOnData.setValue(ActionOnData.Replace);
         properties.schemaListener.afterSchema();
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String p : partitions) {
             for (String r : rows) {
@@ -617,7 +618,7 @@ public class TAzureStorageOuputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.actionOnData.setValue(ActionOnData.Insert);
         properties.processOperationInBatch.setValue(true);
         properties.schemaListener.afterSchema();
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String r : rows) {
             IndexedRecord entity = new GenericData.Record(getWriteSchema());

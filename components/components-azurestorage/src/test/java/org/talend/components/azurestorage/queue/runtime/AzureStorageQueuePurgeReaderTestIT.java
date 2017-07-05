@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.components.api.component.runtime.BoundedReader;
+import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.azurestorage.AzureStorageProvideConnectionProperties;
 import org.talend.components.azurestorage.queue.tazurestoragequeueoutput.TAzureStorageQueueOutputProperties;
@@ -44,7 +45,7 @@ public class AzureStorageQueuePurgeReaderTestIT extends AzureStorageBaseQueueTes
         AzureStorageQueueSink sink = new AzureStorageQueueSink();
         sink.initialize(null, properties);
         sink.validate(null);
-        Writer<?> writer = sink.createWriteOperation().createWriter(null);
+        Writer<IndexedRecord, Result> writer = sink.createWriteOperation().createWriter(null);
         writer.open("test-uid");
         for (String m : messages) {
             IndexedRecord entity = new GenericData.Record(properties.schema.schema.getValue());

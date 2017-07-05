@@ -30,6 +30,7 @@ import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.components.api.component.runtime.BoundedReader;
+import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.azurestorage.table.helpers.Comparison;
 import org.talend.components.azurestorage.table.helpers.Predicate;
@@ -73,7 +74,7 @@ public class TAzureStorageInputTableTestIT extends AzureStorageTableBaseTestIT {
         props.actionOnData.setValue(ActionOnData.Insert);
         props.schemaListener.afterSchema();
         props.tableName.setValue(table);
-        Writer<?> writer = createWriter(props);
+        Writer<IndexedRecord, Result> writer = createWriter(props);
         writer.open("test-uid");
         for (String p : partitions) {
             for (String r : rows) {

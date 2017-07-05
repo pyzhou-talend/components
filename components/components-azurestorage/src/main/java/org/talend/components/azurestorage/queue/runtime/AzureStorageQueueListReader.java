@@ -34,7 +34,7 @@ import org.talend.components.azurestorage.queue.tazurestoragequeuelist.TAzureSto
 import com.microsoft.azure.storage.queue.CloudQueue;
 import com.microsoft.azure.storage.queue.CloudQueueClient;
 
-public class AzureStorageQueueListReader extends AzureStorageReader<IndexedRecord> {
+public class AzureStorageQueueListReader extends AzureStorageReader {
 
     private TAzureStorageQueueListProperties properties;
 

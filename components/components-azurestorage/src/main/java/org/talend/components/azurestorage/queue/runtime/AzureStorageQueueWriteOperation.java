@@ -14,6 +14,7 @@ package org.talend.components.azurestorage.queue.runtime;
 
 import java.util.Map;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Sink;
 import org.talend.components.api.component.runtime.WriteOperation;
@@ -38,7 +39,7 @@ public class AzureStorageQueueWriteOperation implements WriteOperation<Result> {
     }
 
     @Override
-    public Writer<Result> createWriter(RuntimeContainer adaptor) {
+    public Writer<IndexedRecord, Result> createWriter(RuntimeContainer adaptor) {
         return new AzureStorageQueueWriter(adaptor, this);
     }
 

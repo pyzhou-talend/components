@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.components.azurestorage.queue.runtime;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.junit.BeforeClass;
 import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.properties.ComponentProperties;
@@ -54,7 +55,7 @@ public class AzureStorageBaseQueueTestIT extends AzureStorageBaseTestIT {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> BoundedReader<T> createBoundedReader(ComponentProperties props) {
+    public BoundedReader<IndexedRecord> createBoundedReader(ComponentProperties props) {
         AzureStorageQueueSource source = new AzureStorageQueueSource();
         source.initialize(null, props);
         source.validate(null);

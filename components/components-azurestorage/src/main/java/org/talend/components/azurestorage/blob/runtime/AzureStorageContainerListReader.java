@@ -32,7 +32,7 @@ import org.talend.components.azurestorage.blob.tazurestoragecontainerlist.TAzure
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 
-public class AzureStorageContainerListReader extends AzureStorageReader<IndexedRecord> {
+public class AzureStorageContainerListReader extends AzureStorageReader {
 
     private IndexedRecord currentRecord;
 

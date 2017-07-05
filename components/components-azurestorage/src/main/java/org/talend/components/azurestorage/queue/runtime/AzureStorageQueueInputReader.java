@@ -38,7 +38,7 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.queue.CloudQueue;
 import com.microsoft.azure.storage.queue.CloudQueueMessage;
 
-public class AzureStorageQueueInputReader extends AzureStorageReader<IndexedRecord> {
+public class AzureStorageQueueInputReader extends AzureStorageReader {
 
     private TAzureStorageQueueInputProperties properties;
 

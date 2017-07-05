@@ -20,6 +20,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.azurestorage.AzureStorageProvideConnectionProperties;
@@ -34,7 +35,7 @@ public class AzureStorageQueueOutputWriterTestIT extends AzureStorageBaseQueueTe
         super("queue-output");
     }
 
-    public Writer<?> createWriter(ComponentProperties properties) {
+    public Writer<IndexedRecord, Result> createWriter(ComponentProperties properties) {
         AzureStorageQueueSink sink = new AzureStorageQueueSink();
         sink.initialize(null, properties);
         sink.validate(null);
@@ -50,7 +51,7 @@ public class AzureStorageQueueOutputWriterTestIT extends AzureStorageBaseQueueTe
                 (AzureStorageProvideConnectionProperties) properties);
         properties.setupProperties();
         properties.queueName.setValue(TEST_QUEUE_NAME);
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String m : messages) {
             IndexedRecord entity = new GenericData.Record(properties.schema.schema.getValue());
@@ -76,7 +77,7 @@ public class AzureStorageQueueOutputWriterTestIT extends AzureStorageBaseQueueTe
         properties.setupProperties();
         properties.queueName.setValue(TEST_QUEUE_NAME);
         properties.initialVisibilityDelayInSeconds.setValue(5);
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String m : messages) {
             IndexedRecord entity = new GenericData.Record(properties.schema.schema.getValue());
@@ -114,7 +115,7 @@ public class AzureStorageQueueOutputWriterTestIT extends AzureStorageBaseQueueTe
         properties.setupProperties();
         properties.queueName.setValue(TEST_QUEUE_NAME);
         properties.timeToLiveInSeconds.setValue(5);
-        Writer<?> writer = createWriter(properties);
+        Writer<IndexedRecord, Result> writer = createWriter(properties);
         writer.open("test-uid");
         for (String m : messages) {
             IndexedRecord entity = new GenericData.Record(properties.schema.schema.getValue());

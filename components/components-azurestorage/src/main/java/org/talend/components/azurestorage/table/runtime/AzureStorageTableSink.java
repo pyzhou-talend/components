@@ -13,7 +13,6 @@
 package org.talend.components.azurestorage.table.runtime;
 
 import org.talend.components.api.component.runtime.Sink;
-import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.azurestorage.table.tazurestorageoutputtable.TAzureStorageOutputTableProperties;
 import org.talend.daikon.i18n.GlobalI18N;
@@ -30,7 +29,7 @@ public class AzureStorageTableSink extends AzureStorageTableSourceOrSink impleme
             .getI18nMessages(AzureStorageTableSink.class);
 
     @Override
-    public WriteOperation<?> createWriteOperation() {
+    public AzureStorageTableWriteOperation createWriteOperation() {
         return new AzureStorageTableWriteOperation(this);
     }
 

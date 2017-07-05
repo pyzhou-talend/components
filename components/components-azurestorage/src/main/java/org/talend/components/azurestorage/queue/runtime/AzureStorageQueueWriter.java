@@ -31,7 +31,6 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.azurestorage.queue.AzureStorageQueueProperties;
 import org.talend.components.azurestorage.queue.tazurestoragequeueoutput.TAzureStorageQueueOutputProperties;
-import org.talend.components.common.runtime.GenericIndexedRecordConverter;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.i18n.GlobalI18N;
 import org.talend.daikon.i18n.I18nMessages;
@@ -40,7 +39,7 @@ import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.queue.CloudQueue;
 import com.microsoft.azure.storage.queue.CloudQueueMessage;
 
-public class AzureStorageQueueWriter implements Writer<Result> {
+public class AzureStorageQueueWriter implements Writer<IndexedRecord, Result> {
 
     private AzureStorageQueueWriteOperation wope;
 
@@ -95,17 +94,14 @@ public class AzureStorageQueueWriter implements Writer<Result> {
     }
 
     @Override
-    public void write(Object object) throws IOException {
-        String content;
-        if (object == null)
+    public void write(IndexedRecord record) throws IOException {
+        if (record == null) {
             return;
+        }
         result.totalCount++;
         if (writeSchema == null) {
-            writeSchema = ((IndexedRecord) object).getSchema();
+            writeSchema = ((IndexedRecord) record).getSchema();
         }
-        GenericIndexedRecordConverter factory = new GenericIndexedRecordConverter();
-        factory.setSchema(writeSchema);
-        IndexedRecord inputRecord = factory.convertToAvro((IndexedRecord) object);
         Field msgContent = writeSchema.getField(AzureStorageQueueProperties.FIELD_MESSAGE_CONTENT);
         int ttl = props.timeToLiveInSeconds.getValue();
         int visibility = props.initialVisibilityDelayInSeconds.getValue();
@@ -116,7 +112,7 @@ public class AzureStorageQueueWriter implements Writer<Result> {
                 throw new ComponentException(new Exception(i18nMessages.getMessage("error.VacantMessage")));
             }
         } else {
-            content = (String) inputRecord.get(msgContent.pos());
+            String content = (String) record.get(msgContent.pos());
             messagesBuffer.add(new QueueMessage(new CloudQueueMessage(content), ttl, visibility));
         }
 

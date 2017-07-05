@@ -44,7 +44,6 @@ import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.i18n.GlobalI18N;
 import org.talend.daikon.i18n.I18nMessages;
-import org.talend.daikon.properties.ValidationResult;
 
 import com.microsoft.azure.storage.StorageErrorCodeStrings;
 import com.microsoft.azure.storage.StorageException;
@@ -56,7 +55,7 @@ import com.microsoft.azure.storage.table.TableBatchOperation;
 import com.microsoft.azure.storage.table.TableOperation;
 import com.microsoft.azure.storage.table.TableServiceException;
 
-public class AzureStorageTableWriter implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
+public class AzureStorageTableWriter implements WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> {
 
     protected transient RuntimeContainer runtime;
 
@@ -203,8 +202,8 @@ public class AzureStorageTableWriter implements WriterWithFeedback<Result, Index
     }
 
     @Override
-    public void write(Object object) throws IOException {
-        if (object == null) {
+    public void write(IndexedRecord record) throws IOException {
+        if (record == null) {
             return;
         }
         // initialize feedback collections for the write operation
@@ -212,17 +211,16 @@ public class AzureStorageTableWriter implements WriterWithFeedback<Result, Index
         rejectedWrites = new ArrayList<>();
 
         result.totalCount++;
-        IndexedRecord inputRecord = (IndexedRecord) object;
         // This for dynamic which would get schema from the first record
         if (writeSchema == null) {
-            writeSchema = ((IndexedRecord) object).getSchema();
+            writeSchema = record.getSchema();
         }
 
         if (processOperationInBatch) {
-            DynamicTableEntity entity = createDynamicEntityFromInputRecord(inputRecord, writeSchema);
-            addOperationToBatch(entity, inputRecord);
+            DynamicTableEntity entity = createDynamicEntityFromInputRecord(record, writeSchema);
+            addOperationToBatch(entity, record);
         } else {
-            recordToEnqueue.add(inputRecord);
+            recordToEnqueue.add(record);
             if (recordToEnqueue.size() >= MAX_RECORDS_TO_ENQUEUE) {
                 processParallelRecords();
             }

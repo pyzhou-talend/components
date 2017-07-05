@@ -14,6 +14,7 @@ package org.talend.components.azurestorage.table.runtime;
 
 import java.util.List;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.container.RuntimeContainer;
@@ -24,9 +25,8 @@ public class AzureStorageTableSource extends AzureStorageTableSourceOrSink imple
 
     private static final long serialVersionUID = -2453758634165235002L;
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public BoundedReader createReader(RuntimeContainer container) {
+    public BoundedReader<IndexedRecord> createReader(RuntimeContainer container) {
         if (properties instanceof TAzureStorageInputTableProperties) {
             return new AzureStorageTableReader(container, this, (TAzureStorageInputTableProperties) properties);
         }

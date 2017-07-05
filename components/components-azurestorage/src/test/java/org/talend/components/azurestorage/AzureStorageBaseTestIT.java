@@ -14,12 +14,11 @@ package org.talend.components.azurestorage;
 
 import javax.inject.Inject;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.container.DefaultComponentRuntimeContainerImpl;
 import org.talend.components.api.container.RuntimeContainer;
@@ -51,8 +50,6 @@ public abstract class AzureStorageBaseTestIT {
     private ComponentService componentService;
 
     protected RuntimeContainer runtime;
-
-    private transient static final Logger LOG = LoggerFactory.getLogger(AzureStorageBaseTestIT.class);
 
     /**
      * Instantiates a new AzureStorageBaseTestIT().
@@ -97,8 +94,7 @@ public abstract class AzureStorageBaseTestIT {
      * @param props {@link ComponentProperties} props
      * @return <code>BoundedReader</code> {@link BoundedReader} bounded reader
      */
-    @SuppressWarnings("unchecked")
-    public <T> BoundedReader<T> createBoundedReader(ComponentProperties props) {
+    public BoundedReader<IndexedRecord> createBoundedReader(ComponentProperties props) {
         AzureStorageSource source = new AzureStorageSource();
         source.initialize(null, props);
         source.validate(null);
