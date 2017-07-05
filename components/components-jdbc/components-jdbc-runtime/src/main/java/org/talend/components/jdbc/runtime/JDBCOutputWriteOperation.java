@@ -14,6 +14,7 @@ package org.talend.components.jdbc.runtime;
 
 import java.util.Map;
 
+import org.apache.avro.generic.IndexedRecord;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Sink;
 import org.talend.components.api.component.runtime.WriteOperation;
@@ -52,7 +53,7 @@ public class JDBCOutputWriteOperation implements WriteOperation<Result> {
     }
 
     @Override
-    public Writer<Result> createWriter(RuntimeContainer runtimeContainer) {
+    public Writer<IndexedRecord, Result> createWriter(RuntimeContainer runtimeContainer) {
         RuntimeSettingProvider properties = ((JDBCSink) sink).properties;
 
         DataAction dataAction = properties.getRuntimeSetting().getDataAction();

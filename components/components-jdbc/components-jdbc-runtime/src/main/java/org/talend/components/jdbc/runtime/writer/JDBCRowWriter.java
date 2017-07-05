@@ -33,19 +33,17 @@ import org.talend.components.api.component.runtime.WriterWithFeedback;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
-import org.talend.components.common.avro.JDBCAvroRegistry;
 import org.talend.components.jdbc.CommonUtils;
 import org.talend.components.jdbc.JDBCTemplate;
 import org.talend.components.jdbc.RuntimeSettingProvider;
 import org.talend.components.jdbc.runtime.JDBCRowSink;
 import org.talend.components.jdbc.runtime.setting.AllSetting;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 /**
  * the JDBC writer for JDBC row
  *
  */
-public class JDBCRowWriter implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
+public class JDBCRowWriter implements WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> {
 
     private transient static final Logger LOG = LoggerFactory.getLogger(JDBCRowWriter.class);
 
@@ -133,13 +131,11 @@ public class JDBCRowWriter implements WriterWithFeedback<Result, IndexedRecord, 
         }
     }
 
-    public void write(Object datum) throws IOException {
+    public void write(IndexedRecord record) throws IOException {
         result.totalCount++;
 
         successfulWrites.clear();
         rejectedWrites.clear();
-
-        IndexedRecord input = this.getFactory(datum).convertToAvro(datum);
 
         try {
             if (usePreparedStatement) {
@@ -159,7 +155,7 @@ public class JDBCRowWriter implements WriterWithFeedback<Result, IndexedRecord, 
                 }
             }
 
-            handleSuccess(input);
+            handleSuccess(record);
         } catch (SQLException e) {
             if (dieOnError) {
                 throw new ComponentException(e);
@@ -167,7 +163,7 @@ public class JDBCRowWriter implements WriterWithFeedback<Result, IndexedRecord, 
                 LOG.warn(e.getMessage());
             }
 
-            handleReject(input, e);
+            handleReject(record, e);
         }
 
         try {
@@ -226,17 +222,6 @@ public class JDBCRowWriter implements WriterWithFeedback<Result, IndexedRecord, 
     @Override
     public WriteOperation<Result> getWriteOperation() {
         return writeOperation;
-    }
-
-    private IndexedRecordConverter<Object, ? extends IndexedRecord> factory;
-
-    @SuppressWarnings("unchecked")
-    private IndexedRecordConverter<Object, ? extends IndexedRecord> getFactory(Object datum) {
-        if (null == factory) {
-            factory = (IndexedRecordConverter<Object, ? extends IndexedRecord>) JDBCAvroRegistry.get()
-                    .createIndexedRecordConverter(datum.getClass());
-        }
-        return factory;
     }
 
     @Override

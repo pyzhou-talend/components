@@ -53,24 +53,22 @@ public class JDBCOutputInsertWriter extends JDBCOutputWriter {
     }
 
     @Override
-    public void write(Object datum) throws IOException {
-        super.write(datum);
+    public void write(IndexedRecord record) throws IOException {
+        super.write(record);
 
-        IndexedRecord input = this.getFactory(datum).convertToAvro(datum);
-
-        List<Schema.Field> fields = input.getSchema().getFields();
+        List<Schema.Field> fields = record.getSchema().getFields();
 
         try {
             int index = 0;
             for (Schema.Field f : fields) {
-                JDBCMapping.setValue(++index, statement, f, input.get(f.pos()));
+                JDBCMapping.setValue(++index, statement, f, record.get(f.pos()));
             }
         } catch (SQLException e) {
             throw new ComponentException(e);
         }
 
         try {
-            insertCount += execute(input, statement);
+            insertCount += execute(record, statement);
         } catch (SQLException e) {
             if (dieOnError) {
                 throw new ComponentException(e);
@@ -83,7 +81,7 @@ public class JDBCOutputInsertWriter extends JDBCOutputWriter {
                 LOG.warn(e.getMessage());
             }
 
-            handleReject(input, e);
+            handleReject(record, e);
         }
 
         try {

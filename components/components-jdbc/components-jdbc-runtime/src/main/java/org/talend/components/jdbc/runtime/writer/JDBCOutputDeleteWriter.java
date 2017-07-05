@@ -55,24 +55,22 @@ public class JDBCOutputDeleteWriter extends JDBCOutputWriter {
     }
 
     @Override
-    public void write(Object datum) throws IOException {
-        super.write(datum);
+    public void write(IndexedRecord record) throws IOException {
+        super.write(record);
 
-        IndexedRecord input = this.getFactory(datum).convertToAvro(datum);
-
-        List<Schema.Field> keys = JDBCTemplate.getKeyColumns(input.getSchema().getFields());
+        List<Schema.Field> keys = JDBCTemplate.getKeyColumns(record.getSchema().getFields());
 
         try {
             int index = 0;
             for (Schema.Field key : keys) {
-                JDBCMapping.setValue(++index, statement, key, input.get(key.pos()));
+                JDBCMapping.setValue(++index, statement, key, record.get(key.pos()));
             }
         } catch (SQLException e) {
             throw new ComponentException(e);
         }
 
         try {
-            deleteCount += execute(input, statement);
+            deleteCount += execute(record, statement);
         } catch (SQLException e) {
             if (dieOnError) {
                 throw new ComponentException(e);
@@ -80,7 +78,7 @@ public class JDBCOutputDeleteWriter extends JDBCOutputWriter {
                 LOG.warn(e.getMessage());
             }
 
-            handleReject(input, e);
+            handleReject(record, e);
         }
 
         try {

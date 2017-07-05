@@ -55,29 +55,27 @@ public class JDBCOutputUpdateWriter extends JDBCOutputWriter {
     }
 
     @Override
-    public void write(Object datum) throws IOException {
-        super.write(datum);
+    public void write(IndexedRecord record) throws IOException {
+        super.write(record);
 
-        IndexedRecord input = this.getFactory(datum).convertToAvro(datum);
-
-        List<Schema.Field> keys = JDBCTemplate.getKeyColumns(input.getSchema().getFields());
-        List<Schema.Field> values = JDBCTemplate.getValueColumns(input.getSchema().getFields());
+        List<Schema.Field> keys = JDBCTemplate.getKeyColumns(record.getSchema().getFields());
+        List<Schema.Field> values = JDBCTemplate.getValueColumns(record.getSchema().getFields());
 
         try {
             int index = 0;
             for (Schema.Field value : values) {
-                JDBCMapping.setValue(++index, statement, value, input.get(value.pos()));
+                JDBCMapping.setValue(++index, statement, value, record.get(value.pos()));
             }
 
             for (Schema.Field key : keys) {
-                JDBCMapping.setValue(++index, statement, key, input.get(key.pos()));
+                JDBCMapping.setValue(++index, statement, key, record.get(key.pos()));
             }
         } catch (SQLException e) {
             throw new ComponentException(e);
         }
 
         try {
-            updateCount += execute(input, statement);
+            updateCount += execute(record, statement);
         } catch (SQLException e) {
             if (dieOnError) {
                 throw new ComponentException(e);
@@ -85,7 +83,7 @@ public class JDBCOutputUpdateWriter extends JDBCOutputWriter {
                 LOG.warn(e.getMessage());
             }
 
-            handleReject(input, e);
+            handleReject(record, e);
         }
 
         try {

@@ -33,20 +33,18 @@ import org.talend.components.api.component.runtime.WriterWithFeedback;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
-import org.talend.components.common.avro.JDBCAvroRegistry;
 import org.talend.components.jdbc.CommonUtils;
 import org.talend.components.jdbc.RuntimeSettingProvider;
 import org.talend.components.jdbc.runtime.JDBCSink;
 import org.talend.components.jdbc.runtime.setting.AllSetting;
 import org.talend.components.jdbc.runtime.setting.JDBCSQLBuilder;
 import org.talend.components.jdbc.tjdbcoutput.TJDBCOutputProperties.DataAction;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 /**
  * common JDBC writer
  *
  */
-abstract public class JDBCOutputWriter implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
+abstract public class JDBCOutputWriter implements WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> {
 
     private transient static final Logger LOG = LoggerFactory.getLogger(JDBCOutputWriter.class);
 
@@ -139,7 +137,7 @@ abstract public class JDBCOutputWriter implements WriterWithFeedback<Result, Ind
     }
 
     @Override
-    public void write(Object datum) throws IOException {
+    public void write(IndexedRecord record) throws IOException {
         result.totalCount++;
 
         successfulWrites.clear();
@@ -175,17 +173,6 @@ abstract public class JDBCOutputWriter implements WriterWithFeedback<Result, Ind
     @Override
     public WriteOperation<Result> getWriteOperation() {
         return writeOperation;
-    }
-
-    private IndexedRecordConverter<Object, ? extends IndexedRecord> factory;
-
-    @SuppressWarnings("unchecked")
-    protected IndexedRecordConverter<Object, ? extends IndexedRecord> getFactory(Object datum) {
-        if (null == factory) {
-            factory = (IndexedRecordConverter<Object, ? extends IndexedRecord>) JDBCAvroRegistry.get()
-                    .createIndexedRecordConverter(datum.getClass());
-        }
-        return factory;
     }
 
     @Override

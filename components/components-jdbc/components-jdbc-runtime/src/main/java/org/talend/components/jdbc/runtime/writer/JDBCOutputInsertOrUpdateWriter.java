@@ -77,12 +77,10 @@ public class JDBCOutputInsertOrUpdateWriter extends JDBCOutputWriter {
     }
 
     @Override
-    public void write(Object datum) throws IOException {
-        super.write(datum);
+    public void write(IndexedRecord record) throws IOException {
+        super.write(record);
 
-        IndexedRecord input = this.getFactory(datum).convertToAvro(datum);
-
-        List<Schema.Field> allFields = input.getSchema().getFields();
+        List<Schema.Field> allFields = record.getSchema().getFields();
         List<Schema.Field> keys = JDBCTemplate.getKeyColumns(allFields);
         List<Schema.Field> values = JDBCTemplate.getValueColumns(allFields);
 
@@ -91,7 +89,7 @@ public class JDBCOutputInsertOrUpdateWriter extends JDBCOutputWriter {
         try {
             int index = 0;
             for (Schema.Field key : keys) {
-                JDBCMapping.setValue(++index, statementQuery, key, input.get(key.pos()));
+                JDBCMapping.setValue(++index, statementQuery, key, record.get(key.pos()));
             }
 
             ResultSet resultSet = statementQuery.executeQuery();
@@ -109,28 +107,28 @@ public class JDBCOutputInsertOrUpdateWriter extends JDBCOutputWriter {
                 try {
                     int index = 0;
                     for (Schema.Field value : values) {
-                        JDBCMapping.setValue(++index, statementUpdate, value, input.get(value.pos()));
+                        JDBCMapping.setValue(++index, statementUpdate, value, record.get(value.pos()));
                     }
 
                     for (Schema.Field key : keys) {
-                        JDBCMapping.setValue(++index, statementUpdate, key, input.get(key.pos()));
+                        JDBCMapping.setValue(++index, statementUpdate, key, record.get(key.pos()));
                     }
                 } catch (SQLException e) {
                     throw new ComponentException(e);
                 }
 
-                updateCount += execute(input, statementUpdate);
+                updateCount += execute(record, statementUpdate);
             } else {// do insert
                 try {
                     int index = 0;
                     for (Schema.Field field : allFields) {
-                        JDBCMapping.setValue(++index, statementInsert, field, input.get(field.pos()));
+                        JDBCMapping.setValue(++index, statementInsert, field, record.get(field.pos()));
                     }
                 } catch (SQLException e) {
                     throw new ComponentException(e);
                 }
 
-                insertCount += execute(input, statementInsert);
+                insertCount += execute(record, statementInsert);
             }
         } catch (SQLException e) {
             if (dieOnError) {
@@ -139,7 +137,7 @@ public class JDBCOutputInsertOrUpdateWriter extends JDBCOutputWriter {
                 LOG.warn(e.getMessage());
             }
 
-            handleReject(input, e);
+            handleReject(record, e);
         }
 
         try {

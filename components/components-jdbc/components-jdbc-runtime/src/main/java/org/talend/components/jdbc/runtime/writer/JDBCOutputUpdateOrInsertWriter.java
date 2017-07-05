@@ -68,23 +68,21 @@ public class JDBCOutputUpdateOrInsertWriter extends JDBCOutputWriter {
     }
 
     @Override
-    public void write(Object datum) throws IOException {
-        super.write(datum);
+    public void write(IndexedRecord record) throws IOException {
+        super.write(record);
 
-        IndexedRecord input = this.getFactory(datum).convertToAvro(datum);
-
-        List<Schema.Field> allFields = input.getSchema().getFields();
+        List<Schema.Field> allFields = record.getSchema().getFields();
         List<Schema.Field> keys = JDBCTemplate.getKeyColumns(allFields);
         List<Schema.Field> values = JDBCTemplate.getValueColumns(allFields);
 
         try {
             int index = 0;
             for (Schema.Field value : values) {
-                JDBCMapping.setValue(++index, statementUpdate, value, input.get(value.pos()));
+                JDBCMapping.setValue(++index, statementUpdate, value, record.get(value.pos()));
             }
 
             for (Schema.Field key : keys) {
-                JDBCMapping.setValue(++index, statementUpdate, key, input.get(key.pos()));
+                JDBCMapping.setValue(++index, statementUpdate, key, record.get(key.pos()));
             }
         } catch (SQLException e) {
             throw new ComponentException(e);
@@ -100,12 +98,12 @@ public class JDBCOutputUpdateOrInsertWriter extends JDBCOutputWriter {
             if (noDataUpdate) {
                 int index = 0;
                 for (Schema.Field field : allFields) {
-                    JDBCMapping.setValue(++index, statementInsert, field, input.get(field.pos()));
+                    JDBCMapping.setValue(++index, statementInsert, field, record.get(field.pos()));
                 }
 
-                insertCount += execute(input, statementInsert);
+                insertCount += execute(record, statementInsert);
             } else {
-                handleSuccess(input);
+                handleSuccess(record);
             }
         } catch (SQLException e) {
             if (dieOnError) {
@@ -114,7 +112,7 @@ public class JDBCOutputUpdateOrInsertWriter extends JDBCOutputWriter {
                 LOG.warn(e.getMessage());
             }
 
-            handleReject(input, e);
+            handleReject(record, e);
         }
 
         try {
