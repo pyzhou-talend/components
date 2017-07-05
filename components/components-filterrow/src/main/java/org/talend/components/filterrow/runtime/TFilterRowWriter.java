@@ -26,13 +26,11 @@ import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.component.runtime.WriterWithFeedback;
 import org.talend.components.filterrow.TFilterRowProperties;
 import org.talend.components.filterrow.processing.ValueProcessor;
-import org.talend.daikon.avro.AvroRegistry;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 /**
  * created by dmytro.chmyga on Dec 19, 2016
  */
-public class TFilterRowWriter implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
+public class TFilterRowWriter implements WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> {
 
     private final WriteOperation<Result> writeOperation;
 
@@ -51,8 +49,6 @@ public class TFilterRowWriter implements WriterWithFeedback<Result, IndexedRecor
     private final Schema schemaReject;
 
     private final ValueProcessor valueProcessor;
-
-    private IndexedRecordConverter<Object, ? extends IndexedRecord> factory;
 
     private String uid;
 
@@ -82,18 +78,17 @@ public class TFilterRowWriter implements WriterWithFeedback<Result, IndexedRecor
     }
 
     @Override
-    public void write(Object arg0) throws IOException {
-        if (arg0 == null) {
+    public void write(IndexedRecord record) throws IOException {
+        if (record == null) {
             return;
         } // else handle the data.
         totalCount++;
-        IndexedRecord input = getFactory(arg0).convertToAvro(arg0);
 
-        Map<String, Object> columnValuesMap = prepareMap(input);
+        Map<String, Object> columnValuesMap = prepareMap(record);
         if (valueProcessor.process(columnValuesMap)) {
-            handleSuccess(input);
+            handleSuccess(record);
         } else {
-            handleReject(input);
+            handleReject(record);
         }
     }
 
@@ -147,15 +142,6 @@ public class TFilterRowWriter implements WriterWithFeedback<Result, IndexedRecor
             valuesMap.put(f.name(), inputValue);
         }
         return valuesMap;
-    }
-
-    @SuppressWarnings("unchecked")
-    public IndexedRecordConverter<Object, ? extends IndexedRecord> getFactory(Object datum) {
-        if (null == factory) {
-            factory = (IndexedRecordConverter<Object, ? extends IndexedRecord>) new AvroRegistry()
-                    .createIndexedRecordConverter(datum.getClass());
-        }
-        return factory;
     }
 
     @Override

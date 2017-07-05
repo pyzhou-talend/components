@@ -19,7 +19,6 @@ import org.apache.avro.Schema;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Sink;
 import org.talend.components.api.component.runtime.WriteOperation;
-import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.filterrow.processing.AndValueProcessor;
 import org.talend.components.filterrow.processing.FilterDescriptor;
@@ -57,7 +56,7 @@ public class TFilterRowWriteOperation implements WriteOperation<Result> {
     }
 
     @Override
-    public Writer<Result> createWriter(RuntimeContainer arg0) {
+    public TFilterRowWriter createWriter(RuntimeContainer arg0) {
         return new TFilterRowWriter(this, schemaFlow, schemaReject, valueProcessor);
     }
 

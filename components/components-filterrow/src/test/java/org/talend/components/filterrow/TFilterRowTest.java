@@ -109,7 +109,8 @@ public class TFilterRowTest {
 
         WriteOperation<?> writeOperation = sink.createWriteOperation();
         writeOperation.initialize(null);
-        WriterWithFeedback<?, ?, ?> writer = (WriterWithFeedback<?, ?, ?>) writeOperation.createWriter(null);
+        WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> writer = (WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord>) writeOperation
+                .createWriter(null);
 
         writer.open("uId");
         IndexedRecord record = new GenericData.Record(schema);
