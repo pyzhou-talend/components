@@ -26,7 +26,7 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.marketo.runtime.client.MarketoClientService;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
-public abstract class MarketoWriter implements WriterWithFeedback<Result, IndexedRecord, IndexedRecord> {
+public abstract class MarketoWriter implements WriterWithFeedback<IndexedRecord, Result, IndexedRecord, IndexedRecord> {
 
     protected WriteOperation<Result> writeOperation;
 

@@ -83,20 +83,16 @@ public class MarketoOutputWriter extends MarketoWriter {
     }
 
     @Override
-    public void write(Object object) throws IOException {
-        if (object == null) {
+    public void write(IndexedRecord record) throws IOException {
+        if (record == null) {
             return;
         }
-        //
-        inputRecord = (IndexedRecord) object;
         result.totalCount++;
         // This for dynamic which would get schema from the first record
         if (inputSchema == null) {
             inputSchema = inputRecord.getSchema();
         }
-        //
         recordsToProcess.add(inputRecord);
-
         if (recordsToProcess.size() == batchSize) {
             flush();
         }

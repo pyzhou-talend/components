@@ -17,7 +17,6 @@ import java.util.Map;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.Sink;
 import org.talend.components.api.component.runtime.WriteOperation;
-import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 import org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties;
@@ -42,7 +41,7 @@ public class MarketoWriteOperation implements WriteOperation<Result> {
     }
 
     @Override
-    public Writer<Result> createWriter(RuntimeContainer adaptor) {
+    public MarketoWriter createWriter(RuntimeContainer adaptor) {
         if (sink.properties instanceof TMarketoListOperationProperties) {
             return new MarketoListOperationWriter(this, adaptor);
         }

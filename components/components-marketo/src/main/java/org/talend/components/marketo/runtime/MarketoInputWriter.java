@@ -81,13 +81,12 @@ public class MarketoInputWriter extends MarketoWriter {
     }
 
     @Override
-    public void write(Object object) throws IOException {
-        if (object == null) {
+    public void write(IndexedRecord inputRecord) throws IOException {
+        if (inputRecord == null) {
             return;
         }
         successfulWrites.clear();
         //
-        inputRecord = (IndexedRecord) object;
         result.totalCount++;
         result.apiCalls++;
         // This for dynamic which would get schema from the first record
