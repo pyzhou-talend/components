@@ -58,19 +58,17 @@ public class JiraInsertWriter extends JiraWriter {
      * Inserts resources into Jira server formed from incoming data input <br>
      * Method should be called only after {@link JiraInsertWriter#open(String)}
      * 
-     * @param datum input data
+     * @param record input data
      */
     @Override
-    public void write(Object datum) throws IOException {
+    public void write(IndexedRecord record) throws IOException {
         if (!opened) {
             throw new IOException(MESSAGES.getMessage("error.writerNotOpened"));
         }
         result.totalCount++;
-        if (datum == null) {
+        if (record == null) {
             return;
         }
-        IndexedRecord record = getFactory(datum).convertToAvro(datum);
-
         if (dataSchema == null) {
             dataSchema = record.getSchema();
             Field jsonField = dataSchema.getField("json");

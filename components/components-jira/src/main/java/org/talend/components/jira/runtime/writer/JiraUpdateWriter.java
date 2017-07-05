@@ -65,19 +65,17 @@ public class JiraUpdateWriter extends JiraWriter {
      * Updates Jira resources according incoming data <br>
      * Method should be called only after {@link JiraUpdateWriter#open(String)}
      * 
-     * @param datum input data
+     * @param record input data
      */
     @Override
-    public void write(Object datum) throws IOException {
+    public void write(IndexedRecord record) throws IOException {
         if (!opened) {
             throw new IOException(MESSAGES.getMessage("error.writerNotOpened"));
         }
         result.totalCount++;
-        if (datum == null) {
+        if (record == null) {
             return;
         }
-        IndexedRecord record = getFactory(datum).convertToAvro(datum);
-
         if (dataSchema == null) {
             dataSchema = record.getSchema();
             Field idField = dataSchema.getField("id");

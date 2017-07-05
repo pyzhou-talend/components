@@ -25,24 +25,17 @@ import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.exception.DataRejectException;
 import org.talend.components.jira.connection.Rest;
 import org.talend.components.jira.runtime.JiraWriteOperation;
-import org.talend.daikon.avro.AvroRegistry;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 import org.talend.daikon.i18n.GlobalI18N;
 import org.talend.daikon.i18n.I18nMessages;
 
 /**
  * Jira server {@link Writer}
  */
-public class JiraWriter implements Writer<Result> {
+public class JiraWriter implements Writer<IndexedRecord, Result> {
 
     private static final Logger LOG = LoggerFactory.getLogger(JiraWriter.class);
 
     protected static final I18nMessages MESSAGES = GlobalI18N.getI18nMessageProvider().getI18nMessages(JiraWriter.class);
-
-    /**
-     * IndexedRecord converter
-     */
-    private IndexedRecordConverter<Object, ? extends IndexedRecord> factory;
 
     /**
      * Http connection
@@ -105,7 +98,7 @@ public class JiraWriter implements Writer<Result> {
      * {@inheritDoc}
      */
     @Override
-    public void write(Object datum) throws IOException {
+    public void write(IndexedRecord record) throws IOException {
         // Nothing to be done. Should be overridden in successors
     }
 
@@ -141,20 +134,6 @@ public class JiraWriter implements Writer<Result> {
      */
     protected Rest getConnection() {
         return rest;
-    }
-
-    /**
-     * Returns IndexedRecord converter
-     * 
-     * @param datum data object
-     * @return IndexedRecord converter
-     */
-    protected IndexedRecordConverter<Object, ? extends IndexedRecord> getFactory(Object datum) {
-        if (null == factory) {
-            factory = (IndexedRecordConverter<Object, ? extends IndexedRecord>) new AvroRegistry()
-                    .createIndexedRecordConverter(datum.getClass());
-        }
-        return factory;
     }
 
     /**
