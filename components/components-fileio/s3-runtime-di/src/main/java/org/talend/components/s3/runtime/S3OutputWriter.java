@@ -17,8 +17,6 @@ import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.simplefileio.s3.S3DatasetProperties;
 import org.talend.components.simplefileio.s3.output.S3OutputProperties;
-import org.talend.daikon.avro.AvroRegistry;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -27,7 +25,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import com.csvreader.CsvWriter;
 
-public class S3OutputWriter implements Writer<Result> {
+public class S3OutputWriter implements Writer<IndexedRecord, Result> {
 
     private transient static final Logger LOG = LoggerFactory.getLogger(S3OutputWriter.class);
 
@@ -46,8 +44,6 @@ public class S3OutputWriter implements Writer<Result> {
     private CsvWriter writer;
 
     private File data_file;
-
-    private IndexedRecordConverter<Object, ? extends IndexedRecord> converter;
 
     public S3OutputWriter(S3WriteOperation s3WriteOperation, RuntimeContainer adaptor) {
         this.writeOperation = s3WriteOperation;
@@ -84,12 +80,10 @@ public class S3OutputWriter implements Writer<Result> {
     private boolean firstRow = true;
 
     @Override
-    public void write(Object datum) throws IOException {
-        IndexedRecord input = getFactory(datum).convertToAvro(datum);
-
+    public void write(IndexedRecord record) throws IOException {
         // write header
         if (firstRow) {
-            for (Schema.Field f : input.getSchema().getFields()) {
+            for (Schema.Field f : record.getSchema().getFields()) {
                 writer.write(String.valueOf(String.valueOf(f.name())));
             }
             writer.endRecord();
@@ -97,8 +91,8 @@ public class S3OutputWriter implements Writer<Result> {
         }
 
         // write data
-        for (Schema.Field f : input.getSchema().getFields()) {
-            final Object value = input.get(f.pos());
+        for (Schema.Field f : record.getSchema().getFields()) {
+            final Object value = record.get(f.pos());
             if (value == null) {
                 writer.write(StringUtils.EMPTY);
             } else {
@@ -157,15 +151,6 @@ public class S3OutputWriter implements Writer<Result> {
     @Override
     public WriteOperation<Result> getWriteOperation() {
         return writeOperation;
-    }
-
-    @SuppressWarnings("unchecked")
-    private IndexedRecordConverter<Object, ? extends IndexedRecord> getFactory(Object datum) {
-        if (null == converter) {
-            converter = (IndexedRecordConverter<Object, ? extends IndexedRecord>) new AvroRegistry()
-                    .createIndexedRecordConverter(datum.getClass());
-        }
-        return converter;
     }
 
 }
