@@ -621,8 +621,6 @@ public class FileDelimitedReaderTestIT extends FileDelimitedTestBasic {
 
             assertNotNull(records);
             assertEquals(count, records.size());
-            StringBuffer sb = new StringBuffer();
-            int fieldSize = BASIC_SCHEMA.getFields().size();
             assertTrue(records.get(0).get(0) instanceof Boolean);
             assertEquals(false, records.get(0).get(0));
             assertTrue(records.get(0).get(1) instanceof Integer);
@@ -654,7 +652,6 @@ public class FileDelimitedReaderTestIT extends FileDelimitedTestBasic {
 
         assertNotNull(records);
         assertEquals(count, records.size());
-        int fieldSize = BASIC_SCHEMA.getFields().size();
         assertTrue(records.get(0).get(0) instanceof Boolean);
         assertTrue(records.get(0).get(1) instanceof Integer);
         assertTrue(records.get(0).get(2) instanceof byte[]);

@@ -77,7 +77,6 @@ public class FileDelimitedWizardTestIT extends FileDelimitedTestBasic {
                 "nodeFileDelimited");
         assertNotNull(wiz);
         assertEquals("nodeFileDelimited", wiz.getRepositoryLocation());
-        FileDelimitedWizard swiz = (FileDelimitedWizard) wiz;
         List<Form> forms = wiz.getForms();
         Form formWizard = forms.get(0);
         assertEquals("Wizard", formWizard.getName());

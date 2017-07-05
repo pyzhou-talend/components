@@ -24,21 +24,16 @@ import org.talend.components.api.component.runtime.Writer;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.filedelimited.tfileoutputdelimited.TFileOutputDelimitedProperties;
 import org.talend.daikon.avro.AvroUtils;
-import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 import com.talend.csv.CSVWriter;
 
-public class FileDelimitedWriter implements Writer<Result> {
+public class FileDelimitedWriter implements Writer<IndexedRecord, Result> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileDelimitedWriter.class);
 
     private final FileDelimitedSink sink;
 
-    private IndexedRecordConverter<IndexedRecord, IndexedRecord> factory;
-
     private WriteOperation<Result> writeOperation;
-
-    private final RuntimeContainer container;
 
     FileOutputDelimitedRuntime outputRuntime;
 
@@ -56,7 +51,6 @@ public class FileDelimitedWriter implements Writer<Result> {
 
     FileDelimitedWriter(FileDelimitedWriteOperation writeOperation, RuntimeContainer container) {
         this.writeOperation = writeOperation;
-        this.container = container;
         sink = writeOperation.getSink();
         props = sink.getOutputProperties();
         outputRuntime = new FileOutputDelimitedRuntime(props);
@@ -88,20 +82,19 @@ public class FileDelimitedWriter implements Writer<Result> {
     }
 
     @Override
-    public void write(Object datum) throws IOException {
-        if (datum == null) {
+    public void write(IndexedRecord record) throws IOException {
+        if (record == null) {
             return;
         }
         // This for dynamic which would get schema from the first record
         if (recordSchema == null) {
-            recordSchema = ((IndexedRecord) datum).getSchema();
+            recordSchema = record.getSchema();
             if (csvWriter != null) {
                 outputRuntime.writeHeader(csvWriter, recordSchema);
             } else {
                 outputRuntime.writeHeader(writer, recordSchema);
             }
         }
-        IndexedRecord inputRecord = getFactory(datum).convertToAvro((IndexedRecord) datum);
 
         result.totalCount++;
         if (props.csvOptions.getValue()) {
@@ -114,7 +107,7 @@ public class FileDelimitedWriter implements Writer<Result> {
                 }
                 currentRowNo++;
             }
-            csvWriter.writeNext(getValues(inputRecord));
+            csvWriter.writeNext(getValues(record));
             if (props.rowMode.getValue()) {
                 outputRuntime.writer.write(outputRuntime.strWriter.getBuffer().toString());
                 outputRuntime.strWriter.getBuffer().delete(0, outputRuntime.strWriter.getBuffer().length());
@@ -141,7 +134,7 @@ public class FileDelimitedWriter implements Writer<Result> {
                 }
                 currentRowNo++;
             }
-            writer.write(getRowString(inputRecord));
+            writer.write(getRowString(record));
             if (props.flushOnRow.getValue()) {
                 if (result.getTotalCount() % props.flushOnRowNum.getValue() == 0) {
                     writer.flush();
@@ -213,15 +206,6 @@ public class FileDelimitedWriter implements Writer<Result> {
     @Override
     public WriteOperation<Result> getWriteOperation() {
         return writeOperation;
-    }
-
-    private IndexedRecordConverter<IndexedRecord, IndexedRecord> getFactory(Object datum) {
-        if (factory == null) {
-            factory = new FileDelimitedIndexedRecordConverter();
-            factory.setSchema(recordSchema);
-            ((FileDelimitedIndexedRecordConverter) factory).setProperties(props);
-        }
-        return factory;
     }
 
     private String[] getValues(IndexedRecord record) {
