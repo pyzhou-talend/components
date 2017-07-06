@@ -55,15 +55,7 @@ public class FileInputSource implements BoundedSource {
     public ValidationResult validate(RuntimeContainer adaptor) {
         // Check that the file exists.
         File f = new File(this.properties.filename.getStringValue());
-        if (!f.exists()) {
-            ValidationResult vr = new ValidationResult(ValidationResult.Result.ERROR,"The file '" + f.getPath() + "' does not exist.");
-            return vr;
-        }
-        // Check that there is exactly one column to contain the output.
-        if (schema.getFields().size() != 1) {
-            ValidationResult vr = new ValidationResult(ValidationResult.Result.ERROR,"The schema must have exactly one column.");
-            return vr;
-        }
+
         
         return ValidationResult.OK;
     }

@@ -37,7 +37,7 @@ public class FileInputDefinition extends AbstractComponentDefinition{
     private static final String MAVEN_GROUP_ID = "org.talend.fileinput";
 
     public FileInputDefinition() {
-        super(COMPONENT_NAME,true);
+        super(COMPONENT_NAME,ExecutionEngine.DI, ExecutionEngine.BEAM);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class FileInputDefinition extends AbstractComponentDefinition{
 
     @Override
     public Property[] getReturnProperties() {
-        return new Property[] { };
+        return new Property[] { RETURN_TOTAL_RECORD_COUNT_PROP, RETURN_ERROR_MESSAGE_PROP };
     }
 
     @Override
@@ -86,13 +86,7 @@ public class FileInputDefinition extends AbstractComponentDefinition{
         return true;
     }
     
-    /**
-     * getCommonRuntimeInfo.
-     *
-     * @param classLoader {@link ClassLoader} class loader
-     * @param clazz {@link SourceOrSink} clazz
-     * @return {@link RuntimeInfo} runtime info
-     */
+
     public static RuntimeInfo getCommonRuntimeInfo(ClassLoader classLoader, Class<? extends RuntimableRuntime<?>> clazz) {
         return new SimpleRuntimeInfo(classLoader,
                 DependenciesReader.computeDependenciesFilePath(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID), clazz.getCanonicalName());
