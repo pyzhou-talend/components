@@ -13,6 +13,7 @@ import org.talend.components.common.SchemaProperties;
 import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.properties.property.PropertyFactory;
 import org.talend.daikon.properties.presentation.Form;
+import org.talend.daikon.properties.presentation.Widget;
 
 /**
  * The ComponentProperties subclass provided by a component stores the 
@@ -36,9 +37,8 @@ import org.talend.daikon.properties.presentation.Form;
  */
 public class FileInputProperties extends FixedConnectorsComponentProperties {
 
-    public Property filename = PropertyFactory.newString("filename"); //$NON-NLS-1$
+    public Property filename = PropertyFactory.newString("filename").setRequired(); //$NON-NLS-1$
     public SchemaProperties schema = new SchemaProperties("schema"); //$NON-NLS-1$
-    public Property<Boolean> useFilterExpression = PropertyFactory.newBoolean("useFilterExpression");
     protected transient PropertyPathConnector mainConnector = new PropertyPathConnector(Connector.MAIN_NAME, "schema");
  
     public FileInputProperties(String name) {
@@ -48,7 +48,6 @@ public class FileInputProperties extends FixedConnectorsComponentProperties {
     @Override
     public void setupProperties() {
         super.setupProperties();
-        useFilterExpression.setValue(false);
         // Code for property initialization goes here
     }
 
@@ -58,8 +57,7 @@ public class FileInputProperties extends FixedConnectorsComponentProperties {
         
         Form form = Form.create(this, Form.MAIN);
         form.addRow(schema.getForm(Form.REFERENCE));
-        form.addRow(filename);
-        form.addRow(useFilterExpression);
+        form.addRow(Widget.widget(filename).setWidgetType(Widget.FILE_WIDGET_TYPE));
     }
 
     @Override

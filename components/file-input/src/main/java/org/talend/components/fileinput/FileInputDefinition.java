@@ -34,7 +34,7 @@ public class FileInputDefinition extends AbstractComponentDefinition{
     
     private static final String MAVEN_ARTIFACT_ID = "components-fileinput";
 
-    private static final String MAVEN_GROUP_ID = "org.talend.fileinput";
+    private static final String MAVEN_GROUP_ID = "org.talend.components";
 
     public FileInputDefinition() {
         super(COMPONENT_NAME,ExecutionEngine.DI, ExecutionEngine.BEAM);
