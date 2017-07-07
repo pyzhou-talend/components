@@ -10,7 +10,7 @@
 
 	<groupId>org.talend.components</groupId>
 	<artifactId>components-fileinput</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.3.0-SNAPSHOT</version>
 	<name>Components - fileinput Definition</name>
 	<packaging>bundle</packaging>
 	<repositories>
@@ -143,7 +143,7 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Bundle-SymbolicName>org.talend.components.fileinputttttt</Bundle-SymbolicName>
+								<Bundle-SymbolicName>org.talend.components.fileinput</Bundle-SymbolicName>
 								<Service-Component>*</Service-Component>
 								<Embed-Dependency>*;scope=compile|runtime;inline=false;artifactId=!components*|auto-service|pax-url-aether</Embed-Dependency>
 								<Include-Resource>{maven-resources},META-INF/services/=target/classes/META-INF/services/,META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt=target/classes/META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt</Include-Resource>

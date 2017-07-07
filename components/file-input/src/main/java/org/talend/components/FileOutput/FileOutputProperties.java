@@ -1,6 +1,7 @@
-package org.talend.components.fileinput;
+package org.talend.components.FileOutput;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -36,11 +37,13 @@ import org.talend.daikon.properties.presentation.Widget;
  * <li>{code schema}, an embedded property referring to a Schema.</li>
  * </ol>
  */
-public class FileInputProperties extends FileIOProperties {
+public class FileOutputProperties extends FileIOProperties {
 
     public Property filename = PropertyFactory.newString("filename").setRequired(); //$NON-NLS-1$
+    public SchemaProperties schema = new SchemaProperties("schema"); //$NON-NLS-1$
+    protected transient PropertyPathConnector mainConnector = new PropertyPathConnector(Connector.MAIN_NAME, "schema");
  
-    public FileInputProperties(String name) {
+    public FileOutputProperties(String name) {
         super(name);
     }
 
@@ -56,11 +59,15 @@ public class FileInputProperties extends FileIOProperties {
     }
 
     @Override
-    protected Set<PropertyPathConnector> getAllSchemaPropertiesConnectors(boolean isOutputComponent) {
-        if (isOutputComponent) {
-            return Collections.singleton(MAIN_CONNECTOR);
+    protected Set<PropertyPathConnector> getAllSchemaPropertiesConnectors(boolean isOutputConnection) {
+        HashSet<PropertyPathConnector> connectors = new HashSet<>();
+        if (isOutputConnection) {
+            connectors.add(FLOW_CONNECTOR);
+            connectors.add(REJECT_CONNECTOR);
+        } else {
+            connectors.add(MAIN_CONNECTOR);
         }
-        return Collections.emptySet();
+        return connectors;
     }
 
 }
