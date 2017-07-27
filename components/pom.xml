@@ -29,6 +29,7 @@
         <module>components-bigquery</module>
         <module>components-pubsub</module>
         <module>components-marketo</module>
+		<module>components-mongodb</module>
         <module>components-netsuite</module>
         <module>components-hadoopcluster</module>
 

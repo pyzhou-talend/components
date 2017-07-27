@@ -1,6 +1,10 @@
+#@echo off
+call mvn clean install
 
-cd target
-copy components-mongodb-0.3.0-SNAPSHOT.jar D:\release\Talend-Studio-20170718_1932-V6.5.0SNAPSHOT\plugins\components-mongodb-0.3.0-SNAPSHOT.jar 
+cd components-mongodb-definition\target
+copy components-mongodb-definition-0.20.0-SNAPSHOT.jar D:\release\Talend-Studio-20170724_1932-V6.5.0SNAPSHOT\plugins\components-mongodb-definition-0.20.0-SNAPSHOT.jar 
+if errorlevel 1 echo There happens some Error &pause&exit
+
 
 pause
 pause
