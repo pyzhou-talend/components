@@ -15,11 +15,8 @@ import org.talend.daikon.properties.presentation.Widget;
 
 public class MongoDBProperties extends FixedConnectorsComponentProperties {
 
-    /**
-	 * 
-	 */
-	public Property filename = PropertyFactory.newString("filename").setRequired(); //$NON-NLS-1$
     public SchemaProperties schema = new SchemaProperties("schema"); //$NON-NLS-1$
+    
     protected transient PropertyPathConnector mainConnector = new PropertyPathConnector(Connector.MAIN_NAME, "schema");
     
     protected transient PropertyPathConnector MAIN_CONNECTOR = new PropertyPathConnector(Connector.MAIN_NAME, "schema");
@@ -41,10 +38,8 @@ public class MongoDBProperties extends FixedConnectorsComponentProperties {
     @Override
     public void setupLayout() {
         super.setupLayout();
-        
-        Form form = Form.create(this, Form.MAIN);
-        form.addRow(schema.getForm(Form.REFERENCE));
-        form.addRow(Widget.widget(filename).setWidgetType(Widget.FILE_WIDGET_TYPE));
+        Form main = new Form(this, Form.MAIN);
+        main.addRow(schema.getForm(Form.REFERENCE));
     }
 
     @Override

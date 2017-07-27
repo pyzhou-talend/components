@@ -1,84 +1,84 @@
 
 package org.talend.components.mongodb.tmongodbinput;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.EnumSet;
 import java.util.Set;
 
-import org.talend.components.api.Constants;
-import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.ComponentImageType;
 import org.talend.components.api.component.ConnectorTopology;
+import org.talend.components.api.component.runtime.DependenciesReader;
 import org.talend.components.api.component.runtime.ExecutionEngine;
+import org.talend.components.api.component.runtime.JarRuntimeInfo;
+import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.mongodb.MongoDBDefinition;
-import org.talend.daikon.properties.property.Property;
+import org.talend.components.mongodb.MongoDBFamilyDefinition;
 import org.talend.daikon.runtime.RuntimeInfo;
 
-import aQute.bnd.annotation.component.Component;
 
-/**
- * The FileInputDefinition acts as an entry point for all of services that a
- * component provides to integrate with the Studio (at design-time) and other
- * components (at run-time).
- */
-@Component(name = Constants.COMPONENT_INSTALLER_PREFIX
-		+ TMongoDBInputDefinition.COMPONENT_NAME, provide = ComponentDefinition.class)
-public class TMongoDBInputDefinition extends MongoDBDefinition {
+public class TMongoDBInputDefinition extends MongoDBDefinition{
 
-	public static final String COMPONENT_NAME = "TMongoDBInput"; //$NON-NLS-1$
+    public static final String COMPONENT_NAME = "tMongoDBInput"; //$NON-NLS-1$
+    
+    public static final String RUNTIME_CLASS_NAME = "org.talend.components.mongodb.runtime.MongoDBSource";
+    
 
-	public TMongoDBInputDefinition() {
-		super(COMPONENT_NAME);
-	}
+    public TMongoDBInputDefinition() {
+        super(COMPONENT_NAME);
+    }
 
-	@Override
-	public Property[] getReturnProperties() {
-		return new Property[] { RETURN_TOTAL_RECORD_COUNT_PROP, RETURN_ERROR_MESSAGE_PROP };
-	}
 
-	@Override
-	public String getPngImagePath(ComponentImageType imageType) {
-		switch (imageType) {
-		case PALLETE_ICON_32X32:
-			return "tMongoDBInput_icon32.png"; //$NON-NLS-1$
-		default:
-			return "tMongoDBInput_icon32.png"; //$NON-NLS-1$
-		}
-	}
+    @Override
+    public String getPngImagePath(ComponentImageType imageType) {
+        switch (imageType) {
+        case PALLETE_ICON_32X32:
+            return "tMongoDBInput_icon32.png"; //$NON-NLS-1$
+        default:
+            return "tMongoDBInput_icon32.png"; //$NON-NLS-1$
+        }
+    }
 
-	@Override
-	public Class<? extends ComponentProperties> getPropertyClass() {
-		return TMongoDBInputProperties.class;
-	}
 
-	@Override
-	public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties,
-			ConnectorTopology componentType) {
-		if (componentType == ConnectorTopology.OUTGOING) {
-			return getCommonRuntimeInfo(SOURCE_CLASS);
-		} else {
-			return null;
-		}
-	}
-
-	@Override
-	public Set<ConnectorTopology> getSupportedConnectorTopologies() {
-		return EnumSet.of(ConnectorTopology.OUTGOING);
-	}
-
-	@Override
-	public boolean isSchemaAutoPropagate() {
-		return true;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public Class<? extends ComponentProperties>[] getNestedCompatibleComponentPropertiesClass() {
-		return new Class[] { TMongoDBInputProperties.class };
-	}
-
+    @Override
+    public Class<? extends ComponentProperties> getPropertyClass() {
+        return TMongoDBInputProperties.class;
+    }
+    
+    
+    @Override
+    public Set<ConnectorTopology> getSupportedConnectorTopologies() {
+        return EnumSet.of(ConnectorTopology.OUTGOING);
+    }
+	
+    @Override
+    public boolean isSchemaAutoPropagate() {
+        return true;
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public Class<? extends ComponentProperties>[] getNestedCompatibleComponentPropertiesClass() {
+        return new Class[]{TMongoDBInputProperties.class};
+    }
+    
+    @Override
+    public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology connectorTopology) {
+        assertEngineCompatibility(engine);
+        assertConnectorTopologyCompatibility(connectorTopology);
+        try {
+            return new JarRuntimeInfo(new URL(MongoDBFamilyDefinition.MAVEN_RUNTIME_URI),
+                    DependenciesReader.computeDependenciesFilePath(MongoDBFamilyDefinition.MAVEN_GROUP_ID,
+                    		MongoDBFamilyDefinition.MAVEN_RUNTIME_ARTIFACT_ID), RUNTIME_CLASS_NAME);
+        } catch (MalformedURLException e) {
+            throw new ComponentException(e);
+        }
+    }
+    
 	@Override
 	public boolean isStartable() {
 		return true;
 	}
+    
 }

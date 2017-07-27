@@ -20,7 +20,7 @@ import org.talend.daikon.runtime.RuntimeInfo;
 
 public class TMongoDbBulkLoadDefinition extends MongoDBDefinition{
 
-    public static final String COMPONENT_NAME = "TMongoDBBulkLoad"; //$NON-NLS-1$
+    public static final String COMPONENT_NAME = "tMongoDBBulkLoad"; //$NON-NLS-1$
     
     public static final String RUNTIME_CLASS_NAME = "org.talend.components.mongodb.runtime.MongoDBSource";
     

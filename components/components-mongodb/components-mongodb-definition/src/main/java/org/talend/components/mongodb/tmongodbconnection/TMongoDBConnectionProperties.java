@@ -18,6 +18,7 @@ import static org.talend.components.mongodb.MongoDBDefinition.USE_CURRENT_JVM_PR
 import static org.talend.components.mongodb.MongoDBDefinition.getSandboxedInstance;
 
 import org.talend.components.api.properties.ComponentPropertiesImpl;
+import org.talend.components.mongodb.MongoDBProvideConnectionProperties;
 import org.talend.components.mongodb.common.MongoDBRuntimeSourceOrSink;
 import org.talend.components.mongodb.module.MongoDBConnectionModule;
 import org.talend.daikon.i18n.GlobalI18N;
@@ -35,7 +36,7 @@ import org.talend.daikon.sandbox.SandboxedInstance;
 /**
  * Class TAzureStorageConnectionProperties.
  */
-public class TMongoDBConnectionProperties extends ComponentPropertiesImpl {
+public class TMongoDBConnectionProperties extends ComponentPropertiesImpl implements MongoDBProvideConnectionProperties{
 
 	// Only for the wizard use
 	public Property<String> name = newString("name").setRequired();
@@ -67,8 +68,10 @@ public class TMongoDBConnectionProperties extends ComponentPropertiesImpl {
 		mainForm.addRow(connection.getForm(Form.MAIN));
 		
 		Form refForm = Form.create(this, Form.REFERENCE);
-		refForm.addRow(noQueryTimeout);
 		refForm.addRow(mainForm);
+		
+		Form advancedForm = new Form(this, Form.ADVANCED);   
+		advancedForm.addRow(noQueryTimeout);
 
 
 	}

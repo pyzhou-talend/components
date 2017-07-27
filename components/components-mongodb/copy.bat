@@ -1,5 +1,5 @@
 #@echo off
-call mvn clean install
+call mvn install
 
 cd components-mongodb-definition\target
 copy components-mongodb-definition-0.20.0-SNAPSHOT.jar D:\release\Talend-Studio-20170724_1932-V6.5.0SNAPSHOT\plugins\components-mongodb-definition-0.20.0-SNAPSHOT.jar 

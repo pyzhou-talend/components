@@ -20,7 +20,7 @@ import org.talend.daikon.runtime.RuntimeInfo;
 
 public class TMongoDBConnectionDefinition extends MongoDBDefinition{
 
-    public static final String COMPONENT_NAME = "TMongoDBConnection"; //$NON-NLS-1$
+    public static final String COMPONENT_NAME = "tMongoDBConnection"; //$NON-NLS-1$
     
     public static final String RUNTIME_CLASS_NAME = "org.talend.components.mongodb.runtime.MongoDBSource";
     
