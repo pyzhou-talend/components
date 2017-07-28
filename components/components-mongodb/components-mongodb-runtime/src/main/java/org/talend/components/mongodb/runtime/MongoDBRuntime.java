@@ -5,7 +5,6 @@ import org.talend.components.api.component.runtime.RuntimableRuntime;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.mongodb.MongoDBProvideConnectionProperties;
-import org.talend.components.mongodb.module.MongoDBConnectionModule;
 import org.talend.components.mongodb.tmongodbconnection.TMongoDBConnectionProperties;
 import org.talend.daikon.i18n.GlobalI18N;
 import org.talend.daikon.i18n.I18nMessages;
@@ -30,7 +29,7 @@ public class MongoDBRuntime implements RuntimableRuntime<ComponentProperties> {
 	public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
         // init
         this.properties = (TMongoDBConnectionProperties) properties;
-        MongoDBConnectionModule conn = getUsedConnection(container);
+        TMongoDBConnectionProperties conn = getUsedConnection(container);
 
         // Validate connection properties
 
@@ -61,10 +60,10 @@ public class MongoDBRuntime implements RuntimableRuntime<ComponentProperties> {
         }
 	}
 	
-    public MongoDBConnectionModule getUsedConnection(RuntimeContainer runtimeContainer) {
+    public TMongoDBConnectionProperties getUsedConnection(RuntimeContainer runtimeContainer) {
         TMongoDBConnectionProperties connectionProperties = ((MongoDBProvideConnectionProperties) properties)
                 .getConnectionProperties();
-        String refComponentId = connectionProperties.connection.getReferencedComponentId();
+        String refComponentId = connectionProperties.getReferencedComponentId();
 
         // Using another component's connection
         if (refComponentId != null) {
@@ -73,17 +72,17 @@ public class MongoDBRuntime implements RuntimableRuntime<ComponentProperties> {
                 TMongoDBConnectionProperties sharedConn = (TMongoDBConnectionProperties) runtimeContainer
                         .getComponentData(refComponentId, KEY_CONNECTION_PROPERTIES);
                 if (sharedConn != null) {
-                    return sharedConn.connection;
+                    return sharedConn;
                 }
             }
             // Design time
-            connectionProperties = connectionProperties.connection.getReferencedConnectionProperties();
+            connectionProperties = connectionProperties.getReferencedConnectionProperties();
         }
         if (runtimeContainer != null) {
             runtimeContainer.setComponentData(runtimeContainer.getCurrentComponentId(), KEY_CONNECTION_PROPERTIES,
                     connectionProperties);
         }
-        return connectionProperties.connection;
+        return connectionProperties;
     }
     
     public TMongoDBConnectionProperties getConnectionProperties() {
@@ -93,7 +92,7 @@ public class MongoDBRuntime implements RuntimableRuntime<ComponentProperties> {
 
     public DB getMongoDBConnection(RuntimeContainer runtimeContainer) {
 
-    	MongoDBConnectionModule conn = getUsedConnection(runtimeContainer);
+    	TMongoDBConnectionProperties conn = getUsedConnection(runtimeContainer);
         if (!conn.requiredAuthentication.getValue()) {
 			com.mongodb.MongoClientOptions clientOptions = new com.mongodb.MongoClientOptions.Builder()
 					.build();

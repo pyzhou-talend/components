@@ -20,7 +20,7 @@ import static org.talend.components.mongodb.MongoDBDefinition.getSandboxedInstan
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.mongodb.MongoDBProperties;
 import org.talend.components.mongodb.common.MongoDBRuntimeSourceOrSink;
-import org.talend.components.mongodb.module.MongoDBConnectionModule;
+import org.talend.components.mongodb.tmongodbconnection.TMongoDBConnectionProperties;
 import org.talend.daikon.i18n.GlobalI18N;
 import org.talend.daikon.i18n.I18nMessages;
 import org.talend.daikon.properties.PresentationItem;
@@ -43,7 +43,7 @@ public class TMongoDBBulkLoadProperties extends MongoDBProperties {
 			.getI18nMessages(TMongoDBBulkLoadProperties.class);
 	//
 
-    public MongoDBConnectionModule connection = new MongoDBConnectionModule("connection");
+    public TMongoDBConnectionProperties connection = new TMongoDBConnectionProperties("connection");
     
 	public TMongoDBBulkLoadProperties(String name) {
 		super(name);
@@ -55,7 +55,7 @@ public class TMongoDBBulkLoadProperties extends MongoDBProperties {
 	public void setupLayout() {
 		super.setupLayout();
 		Form mainForm = getForm(Form.MAIN);
-		mainForm.addRow(connection.getForm(Form.MAIN));
+		mainForm.addRow(connection.getForm(Form.REFERENCE));
 	}
 
 	public ValidationResult validateTestConnection() throws Exception {

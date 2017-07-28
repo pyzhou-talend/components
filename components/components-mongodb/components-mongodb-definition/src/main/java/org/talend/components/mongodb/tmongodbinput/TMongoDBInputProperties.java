@@ -21,7 +21,7 @@ import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.common.SchemaProperties;
 import org.talend.components.mongodb.MongoDBProperties;
 import org.talend.components.mongodb.common.MongoDBRuntimeSourceOrSink;
-import org.talend.components.mongodb.module.MongoDBConnectionModule;
+import org.talend.components.mongodb.tmongodbconnection.TMongoDBConnectionProperties;
 import org.talend.daikon.i18n.GlobalI18N;
 import org.talend.daikon.i18n.I18nMessages;
 import org.talend.daikon.properties.Properties;
@@ -41,7 +41,7 @@ public class TMongoDBInputProperties extends MongoDBProperties {
 	private static final I18nMessages i18nMessages = GlobalI18N.getI18nMessageProvider()
 			.getI18nMessages(TMongoDBInputProperties.class);
 
-    public MongoDBConnectionModule connection = new MongoDBConnectionModule("connection");
+    public TMongoDBConnectionProperties connection = new TMongoDBConnectionProperties("connection");
     
     public Property<String> collectionName = PropertyFactory.newString("collectionName").setRequired();
 
@@ -57,7 +57,7 @@ public class TMongoDBInputProperties extends MongoDBProperties {
 		
 		super.setupLayout();
 		Form mainForm = getForm(Form.MAIN);
-		mainForm.addRow(connection.getForm(Form.MAIN));
+		mainForm.addRow(connection.getForm(Form.REFERENCE));
 		mainForm.addRow(collectionName);
 		
 

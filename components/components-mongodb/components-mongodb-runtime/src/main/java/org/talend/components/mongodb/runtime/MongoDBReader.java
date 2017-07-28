@@ -9,11 +9,15 @@ import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.mongodb.MongoDBProvideConnectionProperties;
-import org.talend.components.mongodb.module.MongoDBConnectionModule;
 import org.talend.components.mongodb.tmongodbconnection.TMongoDBConnectionProperties;
 import org.talend.components.mongodb.tmongodbinput.TMongoDBInputProperties;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 
 public class MongoDBReader<T> extends AbstractBoundedReader<T> implements MongoDBProvideConnectionProperties  {
 	
@@ -26,6 +30,10 @@ public class MongoDBReader<T> extends AbstractBoundedReader<T> implements MongoD
     protected TMongoDBInputProperties properties;
     
     private Result result;
+    
+    private boolean started;
+
+    private Boolean advanceable;
 
 
 	protected MongoDBReader(RuntimeContainer container,BoundedSource source,TMongoDBInputProperties properties) {
@@ -54,7 +62,19 @@ public class MongoDBReader<T> extends AbstractBoundedReader<T> implements MongoD
 
 	@Override
 	public boolean start() throws IOException {
-		// TODO Auto-generated method stub
+		String collectionName = properties.collectionName.getValue();
+		DBCollection collection = db.getCollection(collectionName);
+		for (DBObject index : collection.getIndexInfo()) {
+			
+			for (String key : index.keySet()) {
+				//to be implemented
+			}
+		}
+		
+		DBObject myQuery = (DBObject) JSON.parse("{}");//query to be implemented
+		DBObject fields = new BasicDBObject();
+		DBCursor cursor = collection.find(myQuery, fields);
+		
 		return false;
 	}
 
@@ -66,7 +86,9 @@ public class MongoDBReader<T> extends AbstractBoundedReader<T> implements MongoD
 
 	@Override
 	public T getCurrent() throws NoSuchElementException {
-		// TODO Auto-generated method stub
+        if (!started || (advanceable != null && !advanceable)) {
+            throw new NoSuchElementException();
+        }
 		return null;
 	}
 

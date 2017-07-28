@@ -51,11 +51,6 @@ public class TMongoDBConnectionDefinition extends MongoDBDefinition{
     public Set<ConnectorTopology> getSupportedConnectorTopologies() {
         return EnumSet.of(ConnectorTopology.NONE);
     }
-	
-    @Override
-    public boolean isSchemaAutoPropagate() {
-        return true;
-    }
     
     @SuppressWarnings("unchecked")
     @Override
